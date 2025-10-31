@@ -261,7 +261,7 @@
                     <!-- Pilihan Warna -->
                     <div>
                         <h3 class="text-md font-medium text-gray-700 dark:text-gray-300" data-lang="styleColors">Colors</h3>
-                        <div class="flex flex-wrap gap-4 mt-2">
+                        <div class="flex flex-wrap gap-x-6 gap-y-4 mt-2">
                             <div class="flex items-center gap-2">
                                 <input type="color" id="color-dots" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
                                 <label for="color-dots" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleDots">Dots</label>
@@ -273,6 +273,11 @@
                             <div class="flex items-center gap-2">
                                 <input type="color" id="color-corner-square" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
                                 <label for="color-corner-square" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerSquare">Corner Squares</label>
+                            </div>
+                            <!-- [PERBAIKAN] Menambahkan kembali Corner Dots -->
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="color-corner-dot" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                                <label for="color-corner-dot" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerDot">Corner Dots</label>
                             </div>
                         </div>
                     </div>
@@ -298,6 +303,14 @@
                                     <option value="square">Square</option>
                                     <option value="dot">Dot</option>
                                     <option value="extra-rounded">Extra Rounded</option>
+                                </select>
+                            </div>
+                             <!-- [PERBAIKAN] Menambahkan kembali Corner Dots Style -->
+                            <div class="sm:col-span-2">
+                                <label for="style-corner-dot" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerDotType">Corner Dot Style</label>
+                                <select id="style-corner-dot" class="mt-1 block w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="square">Square</option>
+                                    <option value="dot">Dot</option>
                                 </select>
                             </div>
                         </div>
@@ -446,9 +459,11 @@
                 styleDots: "Dots",
                 styleBg: "Background",
                 styleCornerSquare: "Corner Squares",
+                styleCornerDot: "Corner Dots", // [PERBAIKAN] Teks terjemahan
                 styleShape: "Shape & Style",
                 styleDotsType: "Dots Style",
                 styleCornerSquareType: "Corner Square Style",
+                styleCornerDotType: "Corner Dot Style", // [PERBAIKAN] Teks terjemahan
                 styleLogo: "Logo",
                 styleLogoUpload: "Choose image...",
                 col3Title: "3. Download QR Code",
@@ -514,9 +529,11 @@
                 styleDots: "Titik",
                 styleBg: "Latar Belakang",
                 styleCornerSquare: "Kotak Pojok",
+                styleCornerDot: "Titik Pojok", // [PERBAIKAN] Teks terjemahan
                 styleShape: "Bentuk & Gaya",
                 styleDotsType: "Gaya Titik",
                 styleCornerSquareType: "Gaya Kotak Pojok",
+                styleCornerDotType: "Gaya Titik Pojok", // [PERBAIKAN] Teks terjemahan
                 styleLogo: "Logo",
                 styleLogoUpload: "Pilih gambar...",
                 col3Title: "3. Unduh QR Code",
@@ -570,8 +587,10 @@
         const colorDots = document.getElementById('color-dots');
         const colorBg = document.getElementById('color-bg');
         const colorCornerSquare = document.getElementById('color-corner-square');
+        const colorCornerDot = document.getElementById('color-corner-dot'); // [PERBAIKAN] Cache DOM
         const styleDots = document.getElementById('style-dots');
         const styleCornerSquare = document.getElementById('style-corner-square');
+        const styleCornerDot = document.getElementById('style-corner-dot'); // [PERBAIKAN] Cache DOM
         const logoUpload = document.getElementById('logo-upload');
         const logoRemove = document.getElementById('logo-remove');
         const customTextInput = document.getElementById('custom-text');
@@ -628,6 +647,10 @@
                 color: '#000000',
                 type: 'square'
             },
+            cornersDotOptions: { // [PERBAIKAN] Tambahkan opsi default
+                color: '#000000',
+                type: 'square'
+            },
             imageOptions: {
                 crossOrigin: 'anonymous',
                 margin: 5,
@@ -673,6 +696,7 @@
                 dotsOptions: qrCodeInstance._options.dotsOptions,
                 backgroundOptions: qrCodeInstance._options.backgroundOptions,
                 cornersSquareOptions: qrCodeInstance._options.cornersSquareOptions,
+                cornersDotOptions: qrCodeInstance._options.cornersDotOptions, // [PERBAIKAN] Simpan config
                 image: logoImage ? logoImage.src : null // Simpan URL logo, bukan komposit
             };
 
@@ -788,6 +812,7 @@
                     dotsOptions: { color: '#000000', type: 'square' },
                     backgroundOptions: { color: '#ffffff' },
                     cornersSquareOptions: { color: '#000000', type: 'square' },
+                    cornersDotOptions: { color: '#000000', type: 'square' }, // [PERBAIKAN] Load default
                     image: null
                 };
                 
@@ -800,8 +825,10 @@
                 colorDots.value = savedStyles.dotsOptions.color || '#000000';
                 colorBg.value = savedStyles.backgroundOptions.color || '#ffffff';
                 colorCornerSquare.value = savedStyles.cornersSquareOptions.color || '#000000';
+                colorCornerDot.value = savedStyles.cornersDotOptions?.color || '#000000'; // [PERBAIKAN] Load
                 styleDots.value = savedStyles.dotsOptions.type || 'square';
                 styleCornerSquare.value = savedStyles.cornersSquareOptions.type || 'square';
+                styleCornerDot.value = savedStyles.cornersDotOptions?.type || 'square'; // [PERBAIKAN] Load
 
                 // 2. Restore Data
                 const data = config.data || {};
@@ -915,7 +942,8 @@
                             data: 'preview',
                             dotsOptions: code.styles.dotsOptions,
                             backgroundOptions: code.styles.backgroundOptions,
-                            cornersSquareOptions: code.styles.cornersSquareOptions
+                            cornersSquareOptions: code.styles.cornersSquareOptions,
+                            cornersDotOptions: code.styles.cornersDotOptions, // [PERBAIKAN] Gunakan data
                         });
                         // Kita perlu cara untuk mendapatkan SVG sebagai string, tapi library ini tidak langsung memberikannya
                         // Jadi kita buat div sementara untuk mengambil SVG
@@ -1011,23 +1039,35 @@
 
             // Logika penempatan
             if (hasLogo) {
-                // 1. Gambar Logo di atas
-                const logoHeight = size * 0.5; // Logo 50% tinggi canvas
-                const logoY = size * 0.15; // Mulai dari 15% atas
-                try {
-                    ctx.drawImage(logoImage, size / 2 - logoHeight / 2, logoY, logoHeight, logoHeight);
-                } catch (e) {
-                    console.error("Error drawing logo:", e);
-                    // Jika logo gagal di-draw (misal: CORS), lanjutkan ke teks
+                // [PERBAIKAN] Logika Rasio Aspek
+                const logoRatio = logoImage.width / logoImage.height;
+                const maxSize = size * 0.5; // Ukuran max 50% dari canvas
+                
+                let logoW = maxSize;
+                let logoH = maxSize;
+
+                if (logoRatio > 1) { // Landscape
+                    logoH = maxSize / logoRatio;
+                } else { // Portrait or Square
+                    logoW = maxSize * logoRatio;
                 }
                 
-                // 2. Gambar Teks di bawah logo
+                const logoX = (size - logoW) / 2;
+                const logoY = size * 0.15; // Mulai dari 15% atas
+
+                try {
+                    ctx.drawImage(logoImage, logoX, logoY, logoW, logoH);
+                } catch (e) {
+                    console.error("Error drawing logo:", e);
+                }
+                
+                // Gambar Teks di bawah logo
                 if (hasText) {
-                    const textY = logoY + logoHeight + 20; // 20px di bawah logo
+                    const textY = logoY + logoH + 20; // 20px di bawah logo
                     ctx.fillText(customText, size / 2, textY, size * 0.9); // Max width 90%
                 }
             } else if (hasText) {
-                // 1. Tidak ada logo, gambar teks di tengah
+                // Tidak ada logo, gambar teks di tengah
                 ctx.fillText(customText, size / 2, size / 2, size * 0.9); // Max width 90%
             }
 
@@ -1368,8 +1408,11 @@
             colorDots.addEventListener('input', (e) => qrCodeInstance.update({ dotsOptions: { color: e.target.value } }));
             colorBg.addEventListener('input', (e) => qrCodeInstance.update({ backgroundOptions: { color: e.target.value } }));
             colorCornerSquare.addEventListener('input', (e) => qrCodeInstance.update({ cornersSquareOptions: { color: e.target.value } }));
+            colorCornerDot.addEventListener('input', (e) => qrCodeInstance.update({ cornersDotOptions: { color: e.target.value } })); // [PERBAIKAN] Listener
+            
             styleDots.addEventListener('change', (e) => qrCodeInstance.update({ dotsOptions: { type: e.target.value } }));
             styleCornerSquare.addEventListener('change', (e) => qrCodeInstance.update({ cornersSquareOptions: { type: e.target.value } }));
+            styleCornerDot.addEventListener('change', (e) => qrCodeInstance.update({ cornersDotOptions: { type: e.target.value } })); // [PERBAIKAN] Listener
 
             // Listener Logo
             logoUpload.addEventListener('change', (e) => {
