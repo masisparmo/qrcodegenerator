@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="id" class=""> <!-- class 'dark' akan ditambahkan di sini oleh JS -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator Pro</title>
+
+    <!-- FIX: Muat Library QR Code (Hilang) -->
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    
+    <!-- FIX: Muat Library Tailwind (Hilang) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 1. Konfigurasi Tailwind untuk Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- 2. Muat Tailwind CSS -->
+    <!-- 3. Muat Lucide Icons -->
+    <!-- FIX: Ganti dari lucide-react (React library) ke lucide (JavaScript library) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <!-- 4. Skrip Inisialisasi Mode Gelap (Pencegah FOUC) -->
+    <script>
+        // Terapkan tema dari localStorage sebelum halaman dimuat
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    
+    <style>
+        /* Sembunyikan input file asli */
+        input[type]="file"] {
+        }
+        /* Style untuk label input file kustom */
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        
+        /* Style untuk ikon dark mode toggle */
+        #theme-toggle .sun-icon,
+        .dark #theme-toggle .moon-icon {
+            display: block;
+        }
+        .dark #theme-toggle .sun-icon,
+        #theme-toggle .moon-icon {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-relaxed text-gray-900 dark:text-gray-100">
+
+    <!-- 
+      Struktur Aplikasi:
+/* ... existing code ... -->
+    <!-- Bagian 1: UI Generator (Default) -->
+    <div id="generator-ui" class="min-h-screen">
+        <header class="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">QR Code Generator Pro</h1>
+                    <!-- GANTI SUBJUDUL -->
+                    <p class="text-gray-600 dark:text-gray-300">Free QR Code Generator PRO Multi Fungsi</p>
+                </div>
+                <!-- TAMBAHKAN: Tombol Dark Mode Toggle -->
+                <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i data-lucide="sun" class="w-6 h-6 sun-icon"></i>
+                    <i data-lucide="moon" class="w-6 h-6 moon-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Kolom 1: Input Data -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-none space-y-6">
+                <!-- Pilihan Tipe QR -->
+                <div>
+                    <h2 class="text-xl font-semibold mb-3">1. Pilih Tipe QR Code</h2>
+                    <!-- GANTI DARI 2 TOMBOL FLEX MENJADI 4 TOMBOL GRID -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="tab-btn-single" class="flex-1 p-3 text-sm font-medium bg-indigo-600 text-white rounded-md flex items-center justify-center gap-2">
+                            <i data-lucide="link" class="w-4 h-4"></i> Single URL
+                        </button>
+                        <button id="tab-btn-multi" class="flex-1 p-3 text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 rounded-md flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            <i data-lucide="list-tree" class="w-4 h-4"></i> Multi URL
+                        </button>
+                        <button id="tab-btn-vcard" class="flex-1 p-3 text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 rounded-md flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            <i data-lucide="contact" class="w-4 h-4"></i> vCard
+                        </button>
+                        <button id="tab-btn-whatsapp" class="flex-1 p-3 text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 rounded-md flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel Input untuk Single URL (Aktif by default) -->
+                <div id="tab-panel-single" class="space-y-4">
+                    <label for="single-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Masukkan URL Anda</label>
+                    <input type="url" id="single-url" placeholder="https://www.google.com" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Panel Input untuk Multi URL (Hidden by default) -->
+                <div id="tab-panel-multi" class="space-y-4 hidden">
+                    <div>
+                        <label for="multi-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Judul Halaman</label>
+                        <input type="text" id="multi-title" placeholder="Nama Bisnis Saya" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 pt-2">Tautan (Links)</h3>
+                    <div id="multi-links-container" class="space-y-3">
+                        <!-- Tautan dinamis akan ditambahkan di sini oleh JS -->
+                    </div>
+                    
+                    <button id="add-link-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Tambah Tautan
+                    </button>
+                </div>
+
+                <!-- TAMBAHKAN: Panel Input untuk vCard (Hidden by default) -->
+                <div id="tab-panel-vcard" class="space-y-4 hidden">
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">Masukkan Detail Kontak (vCard)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="vcard-first-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Depan</label>
+                            <input type="text" id="vcard-first-name" placeholder="John" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="vcard-last-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Belakang</label>
+                            <input type="text" id="vcard-last-name" placeholder="Doe" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="vcard-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">No. Telepon</label>
+                        <input type="tel" id="vcard-phone" placeholder="+6281234567" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="vcard-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <input type="email" id="vcard-email" placeholder="john.doe@example.com" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="vcard-company" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Perusahaan</label>
+                        <input type="text" id="vcard-company" placeholder="Acme Inc." class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <!-- TAMBAHAN: Input Jabatan -->
+                    <div>
+                        <label for="vcard-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
+                        <input type="text" id="vcard-title" placeholder="Manajer" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <!-- TAMBAHAN: Input Catatan -->
+                    <div>
+                        <label for="vcard-note" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Catatan</label>
+                        <textarea id="vcard-note" placeholder="Catatan tambahan..." rows="2" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <!-- TAMBAHAN BARU: Input Sosial Media -->
+                    <div class="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                        <h4 class="text-md font-medium text-gray-700 dark:text-gray-300">Profil Sosial Media</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 -mt-1 mb-3">Cukup masukkan username Anda.</p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+                            <div>
+                                <label for="vcard-social-facebook" class="block text-xs font-medium text-gray-600 dark:text-gray-400">Facebook</label>
+                                <input type="text" id="vcard-social-facebook" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="vcard-social-instagram" class="block text-xs font-medium text-gray-600 dark:text-gray-400">Instagram</label>
+                                <input type="text" id="vcard-social-instagram" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="vcard-social-tiktok" class="block text-xs font-medium text-gray-600 dark:text-gray-400">TikTok</label>
+                                <input type="text" id="vcard-social-tiktok" placeholder="@Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="vcard-social-linkedin" class="block text-xs font-medium text-gray-600 dark:text-gray-400">LinkedIn</label>
+                                <input type="text" id="vcard-social-linkedin" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                            </div>
+                            <div>
+                                <label for="vcard-social-twitter" class="block text-xs font-medium text-gray-600 dark:text-gray-400">X (Twitter)</label>
+                                <input type="text" id="vcard-social-twitter" placeholder="@Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                            </div>
+                        </div>
+                        <!-- Kontainer untuk sosmed kustom dinamis -->
+                        <div id="vcard-custom-socials-container" class="space-y-3 pt-2">
+                            <!-- Sosial media kustom akan ditambahkan di sini -->
+                        </div>
+                        <button id="vcard-add-social-btn" class="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-gray-400 dark:border-gray-500 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 mt-3">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Tambah Sosial Media Lain
+                        </button>
+                    </div>
+
+                    <!-- TAMBAHAN: Kolom Kustom (Tetap ada) -->
+                    <div class="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                        <h4 class="text-md font-medium text-gray-700 dark:text-gray-300">Kolom Kustom Lainnya</h4>
+                        <div id="vcard-custom-fields-container" class="space-y-3">
+                            <!-- Field kustom dinamis akan ditambahkan di sini -->
+                        </div>
+                        <button id="vcard-add-field-btn" class="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-gray-400 dark:border-gray-500 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Tambah Kolom Kustom
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAMBAHKAN: Panel Input untuk WhatsApp (Hidden by default) -->
+                <!-- FIX: Panel ini hilang sebelumnya, menyebabkan error 'whatsappNumber' is null -->
+                <div id="tab-panel-whatsapp" class="space-y-4 hidden">
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">Masukkan Nomor WhatsApp</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Akan diformat otomatis menjadi tautan <code class="text-xs bg-gray-200 dark:bg-gray-600 p-1 rounded">wa.me</code>.</p>
+                    <div>
+                        <label for="whatsapp-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nomor WhatsApp</label>
+                        <input type="tel" id="whatsapp-number" placeholder="08123456789" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Kolom 2: Kustomisasi -->
+            <!-- FIX: Mengganti blok HTML yang rusak/tidak lengkap untuk Kolom 2 -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-none space-y-6">
+                <h2 class="text-xl font-semibold mb-3">2. Kustomisasi Tampilan</h2>
+                
+                <!-- Pilihan Warna -->
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">Warna</h3>
+                    <div class="mt-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="color-dots" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titik (Dots)</label>
+                            <input type="color" id="color-dots" value="#000000" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="color-bg" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Latar Belakang</label>
+                            <input type="color" id="color-bg" value="#ffffff" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="color-corner-square" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sudut (Kotak)</label>
+
+                            <input type="color" id="color-corner-square" value="#000000" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="color-corner-dot" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sudut (Titik)</label>
+                            <input type="color" id="color-corner-dot" value="#000000" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pilihan Gaya -->
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">Gaya</h3>
+                    <div class="mt-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="style-dots" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gaya Titik</label>
+                            <select id="style-dots" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="square">Kotak</option>
+                                <option value="dots">Titik</option>
+                                <option value="rounded">Bulat</option>
+                                <option value="extra-rounded">Sangat Bulat</option>
+                                <option value="classy">Classy</option>
+                                <option value="classy-rounded">Classy Bulat</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="style-corner-square" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gaya Sudut</label>
+                            <select id="style-corner-square" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="square">Kotak</option>
+                                <option value="dot">Titik</option>
+                                <option value="extra-rounded">Sangat Bulat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Logo -->
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 dark:text-gray-300">Logo</h3>
+                    <div class="mt-2 flex items-center gap-4">
+                        <label for="logo-upload" class="flex-1 text-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 inline-block mr-2"></i>
+                            Pilih Logo
+                        </label>
+                        <!-- FIX: Tambahkan class="hidden" agar input file asli tidak terlihat -->
+                        <input type="file" id="logo-upload" accept="image/png, image/jpeg, image/svg+xml" class="hidden">
+                        <button id="logo-remove" class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Kolom 3: Preview dan Download -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Preview QR Code -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-none">
+                    <h2 class="text-xl font-semibold mb-4">3. Preview & Download</h2>
+                    <div class="flex justify-center items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700 min-h-[250px]">
+                        <!-- Canvas QR Code akan dimasukkan di sini oleh JS -->
+                        <div id="qr-canvas-wrapper" class="w-56 h-56"></div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <button id="download-png-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Download PNG
+                        </button>
+                        <button id="download-svg-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Download SVG
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Preview Halaman Multi URL (Hanya tampil jika tab Multi URL aktif) -->
+                <div id="multi-url-preview-wrapper" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-none hidden">
+                    <h2 class="text-xl font-semibold mb-4">Preview Halaman Multi-URL</h2>
+                    
+                    <!-- Mockup Smartphone -->
+                    <div class="w-full max-w-sm mx-auto bg-white dark:bg-gray-800 border-8 border-gray-800 dark:border-gray-900 rounded-3xl shadow-xl overflow-hidden">
+                        <div class="w-full h-4 bg-gray-800 dark:bg-gray-900 flex justify-center items-center relative">
+                            <div class="w-2 h-2 bg-gray-900 dark:bg-black rounded-full"></div>
+                        </div>
+                        <div id="multi-url-preview-content" class="p-4 h-80 overflow-y-auto bg-gray-50 dark:bg-gray-700">
+                            <h2 id="preview-title" class="text-2xl font-bold text-center mb-6">Judul Halaman</h2>
+                            <div id="preview-links" class="space-y-3">
+                                <!-- Preview link dinamis akan ditambahkan di sini -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Bagian 2: UI Halaman Arahan (Landing Page) (Hidden by default) -->
+    <div id="landing-page-ui" class="min-h-screen bg-gray-100 dark:bg-gray-900 hidden">
+        <div class="container mx-auto max-w-lg p-6 pt-12">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center">
+                <h1 id="landing-title" class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8"></h1>
+                <div id="landing-links" class="space-y-4">
+                    <!-- Tautan akan di-render di sini -->
+                </div>
+            </div>
+            <p class="text-center text-gray-500 dark:text-gray-400 text-sm mt-6">
+                Dibuat dengan QR Code Generator
+            </p>
+        </div>
+    </div>
+
+
+    <script>
+        // GANTI DARI 'DOMContentLoaded' ke 'load'
+        // Ini memastikan semua skrip eksternal (seperti lucide.js) 
+        // telah dimuat sepenuhnya sebelum kita mencoba menggunakannya.
+        window.addEventListener('load', () => {
+
+            // --- Bagian 0: Pengecekan Mode (Generator vs Landing Page) ---
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            const generatorUI = document.getElementById('generator-ui');
+            const landingPageUI = document.getElementById('landing-page-ui');
+
+            if (dataParam) {
+                // --- MODE HALAMAN ARAHAN (LANDING PAGE) ---
+                try {
+                    // Sembunyikan generator, tampilkan landing page
+                    generatorUI.style.display = 'none';
+                    landingPageUI.style.display = 'block';
+
+                    // Decode data dari base64 lalu parse JSON
+                    const decodedData = JSON.parse(atob(dataParam));
+
+                    // Tampilkan judul
+                    const landingTitle = document.getElementById('landing-title');
+                    landingTitle.textContent = decodedData.title || 'Tautan Saya';
+                    document.title = decodedData.title || 'Tautan Saya';
+
+                    // Tampilkan tautan
+                    const landingLinks = document.getElementById('landing-links');
+                    landingLinks.innerHTML = ''; // Kosongkan dulu
+
+                    decodedData.links.forEach(link => {
+                        const linkEl = document.createElement('a');
+                        linkEl.href = link.url;
+                        linkEl.target = '_blank';
+                        linkEl.rel = 'noopener noreferrer';
+                        linkEl.className = 'w-full flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm text-left bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all transform hover:scale-105';
+                        
+                        linkEl.innerHTML = `
+                            <span class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded-full text-indigo-600 dark:text-indigo-400">
+                                <i data-lucide="${link.icon || 'link'}"></i>
+                            </span>
+                            <span class="flex-1 text-md font-medium text-gray-700 dark:text-gray-300">${link.label}</span>
+                            <span class="text-gray-400 dark:text-gray-500">
+                                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </span>
+                        `;
+                        landingLinks.appendChild(linkEl);
+                    });
+
+                    // Render ikon untuk landing page
+                    lucide.createIcons();
+
+                } catch (e) {
+                    console.error('Gagal mem-parsing data QR Multi URL:', e);
+                    // Jika gagal, tampilkan generator saja
+                    generatorUI.style.display = 'block';
+                    landingPageUI.style.display = 'none';
+                    initGenerator(); // Inisialisasi generator jika terjadi error
+                }
+            } else {
+                // --- MODE GENERATOR (DEFAULT) ---
+                initGenerator();
+            }
+        });
+
+        // --- Bagian 1: Inisialisasi Mode Generator ---
+
+        function initGenerator() {
+            // --- Variabel Global & State ---
+            let qrCodeInstance = null;
+            let activeTab = 'single'; // 'single' atau 'multi'
+            let multiLinksData = []; // Array untuk menyimpan data link { id, icon, label, url }
+            let vcardCustomFields = []; // TAMBAHAN: Array untuk menyimpan kolom kustom vCard
+            let vcardCustomSocials = []; // TAMBAHAN BARU: Array untuk sosmed kustom
+            let logoImage = null;
+
+            // --- Inisialisasi QR Code Instance ---
+            qrCodeInstance = new QRCodeStyling({
+                width: 224, // 56 * 4 (tailwind w-56)
+                height: 224, // 56 * 4 (tailwind h-56)
+                type: 'svg',
+                data: 'https://github.com/gemini', // Data default
+                image: '',
+                dotsOptions: {
+                    color: '#000000',
+                    type: 'square'
+                },
+                backgroundOptions: {
+                    color: '#ffffff',
+                },
+                cornersSquareOptions: {
+                    color: '#000000',
+                    type: 'square'
+                },
+                cornersDotOptions: {
+                    color: '#000000',
+                    type: 'square'
+                },
+                imageOptions: {
+                    crossOrigin: 'anonymous',
+                    margin: 5
+                }
+            });
+
+            // Tampilkan QR code di canvas
+            const qrCanvasWrapper = document.getElementById('qr-canvas-wrapper');
+            qrCanvasWrapper.innerHTML = ''; // Kosongkan dulu
+            qrCodeInstance.append(qrCanvasWrapper);
+
+            // --- Cache Elemen DOM ---
+            const themeToggleBtn = document.getElementById('theme-toggle'); // TAMBAHAN
+            
+            const tabBtnSingle = document.getElementById('tab-btn-single');
+            const tabBtnMulti = document.getElementById('tab-btn-multi');
+            const tabPanelSingle = document.getElementById('tab-panel-single');
+            const tabPanelMulti = document.getElementById('tab-panel-multi');
+            const multiUrlPreviewWrapper = document.getElementById('multi-url-preview-wrapper');
+
+            // TAMBAHKAN: Cache Elemen vCard dan WhatsApp
+            const tabBtnVcard = document.getElementById('tab-btn-vcard');
+            const tabBtnWhatsapp = document.getElementById('tab-btn-whatsapp');
+            const tabPanelVcard = document.getElementById('tab-panel-vcard');
+            const tabPanelWhatsapp = document.getElementById('tab-panel-whatsapp');
+            
+            const vcardFirstName = document.getElementById('vcard-first-name');
+            const vcardLastName = document.getElementById('vcard-last-name');
+            const vcardPhone = document.getElementById('vcard-phone');
+            const vcardEmail = document.getElementById('vcard-email');
+            const vcardCompany = document.getElementById('vcard-company');
+            const vcardInputs = document.querySelectorAll('.vcard-input');
+            
+            // TAMBAHAN: Cache Elemen vCard Kustom
+            const vcardTitle = document.getElementById('vcard-title');
+            const vcardNote = document.getElementById('vcard-note');
+            const vcardCustomFieldsContainer = document.getElementById('vcard-custom-fields-container');
+            const vcardAddFieldBtn = document.getElementById('vcard-add-field-btn');
+
+            // TAMBAHAN BARU: Cache Elemen vCard Sosial Media
+            const vcardSocialFacebook = document.getElementById('vcard-social-facebook');
+            const vcardSocialInstagram = document.getElementById('vcard-social-instagram');
+            const vcardSocialTikTok = document.getElementById('vcard-social-tiktok');
+            const vcardSocialLinkedIn = document.getElementById('vcard-social-linkedin');
+            const vcardSocialTwitter = document.getElementById('vcard-social-twitter');
+            const vcardCustomSocialsContainer = document.getElementById('vcard-custom-socials-container');
+            const vcardAddSocialBtn = document.getElementById('vcard-add-social-btn');
+
+            const whatsappNumber = document.getElementById('whatsapp-number');
+
+            const singleUrlInput = document.getElementById('single-url');
+            const multiTitleInput = document.getElementById('multi-title');
+            const addLinkBtn = document.getElementById('add-link-btn');
+            const multiLinksContainer = document.getElementById('multi-links-container');
+
+            const previewTitle = document.getElementById('preview-title');
+            const previewLinksContainer = document.getElementById('preview-links');
+            
+            // Kustomisasi
+            const colorDots = document.getElementById('color-dots');
+            const colorBg = document.getElementById('color-bg');
+            const colorCornerSquare = document.getElementById('color-corner-square');
+            const colorCornerDot = document.getElementById('color-corner-dot');
+            const styleDots = document.getElementById('style-dots');
+            const styleCornerSquare = document.getElementById('style-corner-square');
+            const logoUpload = document.getElementById('logo-upload');
+            const logoRemove = document.getElementById('logo-remove');
+
+            // Download
+            const downloadPngBtn = document.getElementById('download-png-btn');
+            const downloadSvgBtn = document.getElementById('download-svg-btn');
+
+
+            // --- Fungsi Helper ---
+            
+            // TAMBAHAN: Fungsi untuk update ikon tema
+            function updateThemeIcon() {
+                // Ikon di-handle oleh CSS (display: none/block)
+                // jadi tidak perlu JS khusus di sini,
+                // tapi kita panggil lucide.createIcons() jika ikon baru ditambahkan
+                lucide.createIcons();
+            }
+
+
+            // TAMBAHKAN: Fungsi helper untuk format nomor WhatsApp
+            function formatWaNumber(numberStr) {
+                if (!numberStr) {
+                    return 'https://wa.me/'; // Default jika kosong
+                }
+                // 1. Bersihkan dari spasi, strip, kurung
+                let num = numberStr.replace(/[\s\-()]/g, '');
+                // 2. Hapus '+' jika ada di depan
+                if (num.startsWith('+')) {
+                    num = num.substring(1);
+                }
+                // 3. Ganti '0' di depan dengan '62'
+                if (num.startsWith('0')) {
+                    num = '62' + num.substring(1);
+                }
+                // 4. Pastikan dimulai dengan 62 (jika user memasukkan 812... langsung)
+                if (!num.startsWith('62')) {
+                    num = '62' + num;
+                }
+                
+                return 'https://wa.me/' + num;
+            }
+
+            // Fungsi untuk update QR Code berdasarkan data saat ini
+            function updateQrData() {
+                let dataToEncode = 'https://github.com/gemini'; // Default
+                
+                // GANTI: Gunakan switch untuk menangani banyak tab
+                switch (activeTab) {
+                    case 'single':
+                        dataToEncode = singleUrlInput.value || dataToEncode;
+                        break;
+                    
+                    case 'multi':
+                        const title = multiTitleInput.value || 'Tautan Saya';
+                        const links = multiLinksData.map(link => ({
+                            icon: link.icon,
+                            label: link.label,
+                            url: link.url
+                        }));
+                        
+                        const dataObject = { title, links };
+                        const encodedData = btoa(JSON.stringify(dataObject));
+                        const baseUrl = window.location.href.split('?')[0];
+                        dataToEncode = `${baseUrl}?data=${encodedData}`;
+                        break;
+
+                    // TAMBAHKAN: Case untuk vCard
+                    case 'vcard':
+                        // REFAKTOR: Ubah vcard string menjadi array agar bisa di-push
+                        let vcardLines = [
+                            'BEGIN:VCARD',
+                            'VERSION:3.0',
+                            `N:${vcardLastName.value || ''};${vcardFirstName.value || ''};;;`,
+                            `FN:${vcardFirstName.value || ''} ${vcardLastName.value || ''}`,
+                            `ORG:${vcardCompany.value || ''}`,
+                            `TITLE:${vcardTitle.value || ''}`, // TAMBAHAN
+                            `TEL;TYPE=CELL:${vcardPhone.value || ''}`,
+                            `EMAIL:${vcardEmail.value || ''}`,
+                            `NOTE:${vcardNote.value || ''}` // TAMBAHAN
+                        ];
+
+                        // TAMBAHAN BARU: Tambahkan info sosial media
+                        const socials = {
+                            facebook: vcardSocialFacebook.value,
+                            instagram: vcardSocialInstagram.value,
+                            tiktok: vcardSocialTikTok.value,
+                            linkedin: vcardSocialLinkedIn.value,
+                            twitter: vcardSocialTwitter.value
+                        };
+                        
+                        for (const [type, username] of Object.entries(socials)) {
+                            if (username) {
+                                let val = username.replace('@', ''); // Bersihkan @
+                                vcardLines.push(`X-SOCIALPROFILE;TYPE=${type}:${val}`);
+                            }
+                        }
+                        
+                        // TAMBAHAN BARU: Tambahkan sosial media kustom
+                        vcardCustomSocials.forEach(social => {
+                            const label = (social.label || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+                            const value = (social.value || '').trim().replace('@', '');
+                            if (label && value) {
+                                vcardLines.push(`X-SOCIALPROFILE;TYPE=${label}:${value}`);
+                            }
+                        });
+
+
+                        // TAMBAHAN: Tambahkan kolom kustom (Website, Alamat, dll)
+                        vcardCustomFields.forEach(field => {
+                            const label = (field.label || '').trim();
+                            const value = (field.value || '').trim();
+                            if (label && value) {
+                                // Logika cerdas untuk label umum
+                                if (label.toLowerCase() === 'website') {
+                                    vcardLines.push(`URL:${value}`);
+                                } else if (label.toLowerCase() === 'alamat') {
+                                    vcardLines.push(`ADR;TYPE=HOME:;;${value};;;;`); // Alamat dasar
+                                } else {
+                                    // Gunakan X- prefix untuk properti kustom
+                                    const vcardLabel = label.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
+                                    vcardLines.push(`X-${vcardLabel}:${value}`);
+                                }
+                            }
+                        });
+
+                        vcardLines.push('END:VCARD');
+                        dataToEncode = vcardLines.join('\n');
+                        break;
+                    
+                    // TAMBAHKAN: Case untuk WhatsApp
+                    case 'whatsapp':
+                        dataToEncode = formatWaNumber(whatsappNumber.value);
+                        break;
+                }
+
+                qrCodeInstance.update({ data: dataToEncode });
+            }
+
+            // Fungsi untuk me-render daftar input link di UI
+            function renderMultiLinksList() {
+                multiLinksContainer.innerHTML = ''; // Kosongkan container
+                
+                if (multiLinksData.length === 0) {
+                    multiLinksContainer.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center">Belum ada tautan. Klik "Tambah Tautan" untuk memulai.</p>`;
+                }
+
+                multiLinksData.forEach((link, index) => {
+                    const linkEl = document.createElement('div');
+                    linkEl.className = 'p-3 border border-gray-200 dark:border-gray-700 rounded-md space-y-2 relative';
+                    linkEl.innerHTML = `
+                        <button data-id="${link.id}" class="remove-link-btn absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </button>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">Ikon</label>
+                                <select data-id="${link.id}" data-field="icon" class="multi-link-input w-full mt-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                                    <option value="link" ${link.icon === 'link' ? 'selected' : ''}>Link</option>
+                                    <option value="globe" ${link.icon === 'globe' ? 'selected' : ''}>Website</option>
+                                    <option value="instagram" ${link.icon === 'instagram' ? 'selected' : ''}>Instagram</option>
+                                    <option value="linkedin" ${link.icon === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+                                    <option value="facebook" ${link.icon === 'facebook' ? 'selected' : ''}>Facebook</option>
+                                    <option value="twitter" ${link.icon === 'twitter' ? 'selected' : ''}>Twitter</option>
+                                    <option value="youtube" ${link.icon === 'youtube' ? 'selected' : ''}>YouTube</option>
+                                    <option value="github" ${link.icon === 'github' ? 'selected' : ''}>Github</option>
+                                    <option value="tiktok" ${link.icon === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                                    <option value="shopping-cart" ${link.icon === 'shopping-cart' ? 'selected' : ''}>Toko</option>
+                                    <option value="mail" ${link.icon === 'mail' ? 'selected' : ''}>Email</option>
+                                    <option value="phone" ${link.icon === 'phone' ? 'selected' : ''}>Telepon</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">Label Tautan</label>
+                                <input type="text" data-id="${link.id}" data-field="label" value="${link.label}" placeholder="Contoh: Website Saya" class="multi-link-input w-full mt-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400">URL</label>
+                            <input type="url" data-id="${link.id}" data-field="url" value="${link.url}" placeholder="https://..." class="multi-link-input w-full mt-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                        </div>
+                    `;
+                    multiLinksContainer.appendChild(linkEl);
+                });
+                
+                // Render ikon untuk tombol hapus
+                lucide.createIcons();
+                // Update preview & QR code
+                updateMultiUrlPreview();
+                updateQrData();
+            }
+            
+            // Fungsi untuk update preview Halaman Multi URL
+            function updateMultiUrlPreview() {
+                const title = multiTitleInput.value;
+                previewTitle.textContent = title || 'Judul Halaman';
+                
+                previewLinksContainer.innerHTML = ''; // Kosongkan
+                
+                multiLinksData.forEach(link => {
+                    const linkEl = document.createElement('div');
+                    linkEl.className = 'w-full flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 shadow-sm';
+                    linkEl.innerHTML = `
+                        <span class="w-6 h-6 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded-full text-indigo-600 dark:text-indigo-400 text-xs">
+                           <i data-lucide="${link.icon || 'link'}" class="w-4 h-4"></i>
+                        </span>
+                        <span class="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">${link.label || 'Label Tautan'}</span>
+                        <span class="text-gray-300 dark:text-gray-500">
+                           <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                        </span>
+                    `;
+                    previewLinksContainer.appendChild(linkEl);
+                });
+                
+                if (multiLinksData.length === 0) {
+                    previewLinksContainer.innerHTML = `<p class="text-xs text-gray-400 dark:text-gray-500 text-center p-4">Preview tautan Anda akan muncul di sini.</p>`;
+                }
+                
+                // Render ikon untuk preview
+                lucide.createIcons();
+            }
+
+            // --- TAMBAHAN: Fungsi untuk me-render kolom kustom vCard ---
+            function renderVcardCustomFields() {
+                vcardCustomFieldsContainer.innerHTML = ''; // Kosongkan
+                
+                if (vcardCustomFields.length === 0) {
+                    vcardCustomFieldsContainer.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center">Belum ada kolom kustom.</p>`;
+                }
+                
+                vcardCustomFields.forEach(field => {
+                    const fieldEl = document.createElement('div');
+                    fieldEl.className = 'grid grid-cols-10 gap-2 items-center';
+                    // Buat UI untuk Label, Value, dan tombol Hapus
+                    fieldEl.innerHTML = `
+                        <input type="text" data-id="${field.id}" data-field="label" value="${field.label}" placeholder="Label (cth: Website)" class="vcard-custom-input col-span-4 w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                        <input type="text" data-id="${field.id}" data-field="value" value="${field.value}" placeholder="Value (cth: https://...)" class="vcard-custom-input col-span-5 w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                        <button data-id="${field.id}" class="vcard-remove-field-btn text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-500 justify-self-center">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    vcardCustomFieldsContainer.appendChild(fieldEl);
+                });
+                
+                lucide.createIcons();
+                updateQrData(); // Update QR setiap kali me-render ulang
+            }
+
+            // --- TAMBAHAN BARU: Fungsi untuk me-render kolom sosmed kustom vCard ---
+            function renderVcardCustomSocials() {
+                vcardCustomSocialsContainer.innerHTML = ''; // Kosongkan
+                
+                vcardCustomSocials.forEach(social => {
+                    const fieldEl = document.createElement('div');
+                    fieldEl.className = 'grid grid-cols-10 gap-2 items-center';
+                    // Buat UI untuk Label, Value, dan tombol Hapus
+                    fieldEl.innerHTML = `
+                        <input type="text" data-id="${social.id}" data-field="label" value="${social.label}" placeholder="Label (cth: Mastodon)" class="vcard-custom-social-input col-span-4 w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                        <input type="text" data-id="${social.id}" data-field="value" value="${social.value}" placeholder="Username" class="vcard-custom-social-input col-span-5 w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white rounded-md shadow-sm">
+                        <button data-id="${social.id}" class="vcard-remove-social-btn text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-500 justify-self-center">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    vcardCustomSocialsContainer.appendChild(fieldEl);
+                });
+                
+                lucide.createIcons();
+                updateQrData(); // Update QR setiap kali me-render ulang
+            }
+
+
+            // --- Event Listeners ---
+
+            // TAMBAHAN: Listener untuk Tombol Dark Mode
+            themeToggleBtn.addEventListener('click', () => {
+                // Toggle class 'dark' di <html>
+                const isDarkMode = document.documentElement.classList.toggle('dark');
+                // Simpan preferensi
+                localStorage.theme = isDarkMode ? 'dark' : 'light';
+                // Update ikon (jika diperlukan, tapi CSS sudah handle)
+                // updateThemeIcon();
+            });
+
+            // REFAKTOR: Logika Pindah Tab
+            const tabs = [
+                { btn: tabBtnSingle, panel: tabPanelSingle, name: 'single' },
+                { btn: tabBtnMulti, panel: tabPanelMulti, name: 'multi' },
+                { btn: tabBtnVcard, panel: tabPanelVcard, name: 'vcard' },
+                { btn: tabBtnWhatsapp, panel: tabPanelWhatsapp, name: 'whatsapp' }
+            ];
+
+            function setActiveTab(tabName) {
+                activeTab = tabName;
+                
+                // ISI FUNGSI YANG HILANG:
+                tabs.forEach(tab => {
+                    const isActive = tab.name === tabName;
+                    
+                    // Style Tombol
+                    tab.btn.classList.toggle('bg-indigo-600', isActive);
+                    tab.btn.classList.toggle('text-white', isActive);
+                    tab.btn.classList.toggle('bg-white', !isActive);
+                    tab.btn.classList.toggle('text-gray-700', !isActive);
+                    tab.btn.classList.toggle('hover:bg-gray-50', !isActive);
+                    tab.btn.classList.toggle('border', !isActive);
+                    // TAMBAHAN: Style dark mode untuk tab tidak aktif
+                    tab.btn.classList.toggle('dark:bg-gray-700', !isActive);
+                    tab.btn.classList.toggle('dark:text-gray-300', !isActive);
+                    tab.btn.classList.toggle('dark:hover:bg-gray-600', !isActive);
+                    tab.btn.classList.toggle('dark:border-gray-600', !isActive);
+                    
+                    // Tampilkan/Sembunyikan Panel
+                    tab.panel.style.display = isActive ? 'block' : 'none';
+                });
+
+                // Sembunyikan preview multi-url jika tab bukan 'multi'
+                multiUrlPreviewWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+
+                // Update QR
+                updateQrData();
+            }
+
+            // TAMBAHAN YANG HILANG: Pasang listener ke setiap tombol tab
+            tabs.forEach(tab => {
+                tab.btn.addEventListener('click', () => setActiveTab(tab.name));
+            });
+                
+            // 2. Input Data
+            singleUrlInput.addEventListener('input', updateQrData);
+            multiTitleInput.addEventListener('input', () => {
+                updateMultiUrlPreview();
+                updateQrData();
+            });
+            
+            // TAMBAHKAN: Listener untuk input vCard dan WhatsApp
+            // Ini sekarang juga mencakup input sosmed baru karena memiliki class 'vcard-input'
+            vcardInputs.forEach(input => {
+                input.addEventListener('input', updateQrData);
+            });
+            
+            whatsappNumber.addEventListener('input', updateQrData);
+            
+            // 3. Tombol Tambah Link
+            addLinkBtn.addEventListener('click', () => {
+                const newLink = {
+                    id: Date.now().toString(), // ID unik
+                    icon: 'link',
+                    label: '',
+                    url: ''
+                };
+                multiLinksData.push(newLink);
+                renderMultiLinksList();
+            });
+            
+            // 4. Event listener untuk input dinamis (hapus & edit link)
+            multiLinksContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('multi-link-input')) {
+                    const id = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    
+                    const link = multiLinksData.find(l => l.id === id);
+                    if (link) {
+                        link[field] = value;
+                    }
+                    
+                    updateMultiUrlPreview();
+                    updateQrData();
+                }
+            });
+            
+            multiLinksContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.remove-link-btn');
+                if (removeBtn) {
+                    const id = removeBtn.dataset.id;
+                    multiLinksData = multiLinksData.filter(l => l.id !== id);
+                    renderMultiLinksList();
+                }
+            });
+
+            // --- TAMBAHAN: Event Listeners untuk vCard Kustom ---
+            
+            // Tombol "Tambah Kolom Kustom"
+            vcardAddFieldBtn.addEventListener('click', () => {
+                vcardCustomFields.push({
+                    id: Date.now().toString(),
+                    label: '',
+                    value: ''
+                });
+                renderVcardCustomFields();
+            });
+            
+            // Listener untuk input dan hapus pada kontainer kustom
+            vcardCustomFieldsContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('vcard-custom-input')) {
+                    const id = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    
+                    const vcardField = vcardCustomFields.find(f => f.id === id);
+                    if (vcardField) {
+                        vcardField[field] = value;
+                    }
+                    updateQrData();
+                }
+            });
+            
+            vcardCustomFieldsContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.vcard-remove-field-btn');
+                if (removeBtn) {
+                    const id = removeBtn.dataset.id;
+                    vcardCustomFields = vcardCustomFields.filter(f => f.id !== id);
+                    renderVcardCustomFields();
+                    // Check <-- HAPUS KATA 'Check' YANG MENYEBABKAN ERROR
+                }
+            });
+            
+            // --- TAMBAHAN BARU: Event Listeners untuk vCard Sosial Media Kustom ---
+            
+            // Tombol "Tambah Sosial Media"
+            vcardAddSocialBtn.addEventListener('click', () => {
+                vcardCustomSocials.push({
+                    id: Date.now().toString(),
+                    label: '',
+                    value: ''
+                });
+                renderVcardCustomSocials();
+            });
+            
+            // Listener untuk input dan hapus pada kontainer sosmed kustom
+            vcardCustomSocialsContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('vcard-custom-social-input')) {
+                    const id = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    
+                    const vcardSocial = vcardCustomSocials.find(f => f.id === id);
+                    if (vcardSocial) {
+                        vcardSocial[field] = value;
+                    }
+                    updateQrData();
+                }
+            });
+            
+            vcardCustomSocialsContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.vcard-remove-social-btn');
+                if (removeBtn) {
+                    const id = removeBtn.dataset.id;
+                    vcardCustomSocials = vcardCustomSocials.filter(f => f.id !== id);
+                    renderVcardCustomSocials();
+                }
+            });
+
+
+            // 5. Kustomisasi
+            colorDots.addEventListener('input', (e) => qrCodeInstance.update({ dotsOptions: { color: e.target.value } }));
+            colorBg.addEventListener('input', (e) => qrCodeInstance.update({ backgroundOptions: { color: e.target.value } }));
+            colorCornerSquare.addEventListener('input', (e) => qrCodeInstance.update({ cornersSquareOptions: { color: e.target.value } }));
+            colorCornerDot.addEventListener('input', (e) => qrCodeInstance.update({ cornersDotOptions: { color: e.target.value } }));
+            styleDots.addEventListener('change', (e) => qrCodeInstance.update({ dotsOptions: { type: e.target.value } }));
+            styleCornerSquare.addEventListener('change', (e) => qrCodeInstance.update({ cornersSquareOptions: { type: e.target.value } }));
+
+            // 6. Logo
+            logoUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    logoImage = event.target.result;
+                    qrCodeInstance.update({ image: logoImage });
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            logoRemove.addEventListener('click', () => {
+                logoImage = null;
+                logoUpload.value = ''; // Reset input file
+                qrCodeInstance.update({ image: null });
+            });
+            
+            // 7. Download
+            downloadPngBtn.addEventListener('click', () => {
+                qrCodeInstance.download({ name: 'qr-code', extension: 'png' });
+            });
+            
+            downloadSvgBtn.addEventListener('click', () => {
+                qrCodeInstance.download({ name: 'qr-code', extension: 'svg' });
+            });
+            
+            // --- Inisialisasi Awal ---
+            renderMultiLinksList(); // Tampilkan state awal (kosong)
+            renderVcardCustomFields(); // TAMBAHAN: Tampilkan state awal vCard kustom (kosong)
+            renderVcardCustomSocials(); // TAMBAHAN BARU: Tampilkan state awal sosmed kustom (kosong)
+            updateThemeIcon(); // TAMBAHAN: Set ikon tema yang benar saat init
+            lucide.createIcons(); // Render semua ikon awal
+        }
+
+    </script>
+</body>
+</html>
+
