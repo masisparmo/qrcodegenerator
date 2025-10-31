@@ -66,6 +66,23 @@
             width: 40px; /* Lebar tetap agar layout tidak bergeser */
             text-align: center;
         }
+
+        /* Style untuk Modal History */
+        #history-modal {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        /* Style untuk scrollbar di modal */
+        #history-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #history-content::-webkit-scrollbar-thumb {
+            background-color: #4f46e5; /* indigo-600 */
+            border-radius: 4px;
+        }
+        .dark #history-content::-webkit-scrollbar-thumb {
+            background-color: #6366f1; /* indigo-500 */
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 font-sans leading-relaxed text-gray-900 dark:text-gray-100">
@@ -74,6 +91,7 @@
       Struktur Aplikasi:
       - generator-ui: Tampilan utama aplikasi (default)
       - landing-page-ui: Tampilan Halaman Arahan (link-in-bio)
+      - history-modal: Panel pop-up untuk IndexedDB
     -->
     
     <!-- Bagian 1: UI Generator (Default) -->
@@ -83,6 +101,7 @@
           - Header dibuat 'sticky'
           - Menambahkan 'z-50' agar selalu di atas
           - Menambahkan tombol bahasa
+          - PERUBAHAN BARU: Menambahkan tombol "My Codes"
         -->
         <header class="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700 sticky top-0 z-50">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -91,12 +110,16 @@
                     <p class="text-gray-600 dark:text-gray-300" data-lang="subtitle">Free QR Code Generator PRO Multi Function</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- Tombol "My Codes" -->
+                    <button id="my-codes-btn" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="My Codes">
+                        <i data-lucide="archive" class="w-6 h-6"></i>
+                    </button>
                     <!-- Tombol Bahasa -->
-                    <button id="lang-toggle" class="p-2 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <button id="lang-toggle" class="p-2 rounded-full text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Ganti Bahasa">
                         ID
                     </button>
                     <!-- Tombol Dark Mode -->
-                    <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <button id="theme-toggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle Dark Mode">
                         <i data-lucide="sun" class="w-6 h-6 sun-icon"></i>
                         <i data-lucide="moon" class="w-6 h-6 moon-icon"></i>
                     </button>
@@ -134,14 +157,14 @@
                 <!-- Panel Input untuk Single URL -->
                 <div id="tab-panel-single" class="space-y-4">
                     <label for="single-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="singleUrlLabel">Enter your URL</label>
-                    <input type="url" id="single-url" data-lang-placeholder="singleUrlPlaceholder" placeholder="https://www.google.com" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="url" id="single-url" data-lang-placeholder="singleUrlPlaceholder" placeholder="https://www.google.com" class="data-input w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
 
                 <!-- Panel Input untuk Multi URL -->
                 <div id="tab-panel-multi" class="space-y-4 hidden">
                     <div>
                         <label for="multi-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="multiTitleLabel">Page Title</label>
-                        <input type="text" id="multi-title" data-lang-placeholder="multiTitlePlaceholder" placeholder="My Business Name" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="multi-title" data-lang-placeholder="multiTitlePlaceholder" placeholder="My Business Name" class="data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     
                     <h3 class="text-md font-medium text-gray-700 dark:text-gray-300 pt-2" data-lang="multiLinksHeading">Links</h3>
@@ -161,32 +184,32 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="vcard-first-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardFirstName">First Name</label>
-                            <input type="text" id="vcard-first-name" data-lang-placeholder="vcardFirstNamePlaceholder" placeholder="John" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <input type="text" id="vcard-first-name" data-lang-placeholder="vcardFirstNamePlaceholder" placeholder="John" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <div>
                             <label for="vcard-last-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardLastName">Last Name</label>
-                            <input type="text" id="vcard-last-name" data-lang-placeholder="vcardLastNamePlaceholder" placeholder="Doe" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <input type="text" id="vcard-last-name" data-lang-placeholder="vcardLastNamePlaceholder" placeholder="Doe" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                     </div>
                     <div>
                         <label for="vcard-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardPhone">Phone No.</label>
-                        <input type="tel" id="vcard-phone" data-lang-placeholder="vcardPhonePlaceholder" placeholder="+112345678" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="tel" id="vcard-phone" data-lang-placeholder="vcardPhonePlaceholder" placeholder="+112345678" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div>
                         <label for="vcard-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardEmail">Email</label>
-                        <input type="email" id="vcard-email" data-lang-placeholder="vcardEmailPlaceholder" placeholder="john.doe@example.com" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="email" id="vcard-email" data-lang-placeholder="vcardEmailPlaceholder" placeholder="john.doe@example.com" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div>
                         <label for="vcard-company" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardCompany">Company</label>
-                        <input type="text" id="vcard-company" data-lang-placeholder="vcardCompanyPlaceholder" placeholder="Acme Inc." class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="vcard-company" data-lang-placeholder="vcardCompanyPlaceholder" placeholder="Acme Inc." class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div>
                         <label for="vcard-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardJobTitle">Job Title</label>
-                        <input type="text" id="vcard-title" data-lang-placeholder="vcardJobTitlePlaceholder" placeholder="Manager" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="vcard-title" data-lang-placeholder="vcardJobTitlePlaceholder" placeholder="Manager" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div>
                         <label for="vcard-note" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="vcardNote">Note</label>
-                        <textarea id="vcard-note" data-lang-placeholder="vcardNotePlaceholder" placeholder="Additional notes..." rows="2" class="vcard-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        <textarea id="vcard-note" data-lang-placeholder="vcardNotePlaceholder" placeholder="Additional notes..." rows="2" class="vcard-input data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                     </div>
 
                     <!-- Input Sosial Media -->
@@ -196,23 +219,23 @@
                         <div class="grid grid-cols-2 gap-x-4 gap-y-3">
                             <div>
                                 <label for="vcard-social-facebook" class="block text-xs font-medium text-gray-600 dark:text-gray-400">Facebook</label>
-                                <input type="text" id="vcard-social-facebook" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                                <input type="text" id="vcard-social-facebook" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input data-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
                             </div>
                             <div>
                                 <label for="vcard-social-instagram" class="block text-xs font-medium text-gray-600 dark:text-gray-400">Instagram</label>
-                                <input type="text" id="vcard-social-instagram" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                                <input type="text" id="vcard-social-instagram" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input data-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
                             </div>
                             <div>
                                 <label for="vcard-social-tiktok" class="block text-xs font-medium text-gray-600 dark:text-gray-400">TikTok</label>
-                                <input type="text" id="vcard-social-tiktok" data-lang-placeholder="vcardSocialPlaceholder" placeholder="@Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                                <input type="text" id="vcard-social-tiktok" data-lang-placeholder="vcardSocialPlaceholder" placeholder="@Username" class="vcard-input data-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
                             </div>
                             <div>
                                 <label for="vcard-social-linkedin" class="block text-xs font-medium text-gray-600 dark:text-gray-400">LinkedIn</label>
-                                <input type="text" id="vcard-social-linkedin" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                                <input type="text" id="vcard-social-linkedin" data-lang-placeholder="vcardSocialPlaceholder" placeholder="Username" class="vcard-input data-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
                             </div>
                             <div>
                                 <label for="vcard-social-twitter" class="block text-xs font-medium text-gray-600 dark:text-gray-400">X (Twitter)</label>
-                                <input type="text" id="vcard-social-twitter" data-lang-placeholder="vcardSocialPlaceholder" placeholder="@Username" class="vcard-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
+                                <input type="text" id="vcard-social-twitter" data-lang-placeholder="vcardSocialPlaceholder" placeholder="@Username" class="vcard-input data-input w-full mt-1 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm">
                             </div>
                         </div>
                         <div id="vcard-custom-socials-container" class="space-y-3 pt-2">
@@ -243,7 +266,7 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400" data-lang="waHint">Will be auto-formatted to a <code class="text-xs bg-gray-200 dark:bg-gray-600 p-1 rounded">wa.me</code> link.</p>
                     <div>
                         <label for="whatsapp-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="waLabel">WhatsApp Number</label>
-                        <input type="tel" id="whatsapp-number" data-lang-placeholder="waPlaceholder" placeholder="08123456789" class="w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="tel" id="whatsapp-number" data-lang-placeholder="waPlaceholder" placeholder="08123456789" class="data-input w-full mt-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
 
@@ -324,6 +347,18 @@
                     <div class="flex justify-center items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700 min-h-[250px]">
                         <div id="qr-canvas-wrapper" class="w-56 h-56"></div>
                     </div>
+
+                    <!-- Share Link Wrapper -->
+                    <div id="share-link-wrapper" class="mt-4 space-y-1 hidden">
+                        <label for="share-link-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="shareLink">Shareable Link (Multi URL)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="share-link-input" readonly class="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm">
+                            <button id="copy-link-btn" class="p-2 flex-shrink-0 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="mt-4 grid grid-cols-2 gap-3">
                         <button id="download-png-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
                             <i data-lucide="download" class="w-4 h-4"></i>
@@ -334,6 +369,12 @@
                             <span data-lang="downloadSVG">Download SVG</span>
                         </button>
                     </div>
+
+                    <!-- Tombol Save -->
+                    <button id="save-qr-btn" class="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span data-lang="saveCode">Save Code</span>
+                    </button>
                 </div>
 
                 <!-- Preview Halaman Multi URL -->
@@ -369,6 +410,26 @@
             <p class="text-center text-gray-500 dark:text-gray-400 text-sm mt-6" data-lang="landingFooter">
                 Created with QR Code Generator
             </p>
+        </div>
+    </div>
+
+    <!-- Bagian 3: Modal History (IndexedDB) -->
+    <div id="history-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-gray-900 dark:bg-gray-900 opacity-75 dark:opacity-75"></div>
+        
+        <div class="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col" style="max-height: 90vh;">
+            <!-- Header Modal -->
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100" data-lang="savedCodesTitle">My Saved Codes</h2>
+                <button id="close-history-btn" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- Konten Modal (Scrollable) -->
+            <div id="history-content" class="p-6 overflow-y-auto space-y-4">
+                <!-- Konten history dari IndexedDB akan di-render di sini -->
+            </div>
         </div>
     </div>
 
@@ -454,7 +515,22 @@
                 vcardCustomValuePlaceholder: "e.g. https://...",
                 vcardCustomEmpty: "No custom fields yet.",
                 vcardCustomSocialLabelPlaceholder: "e.g. Mastodon",
-                vcardCustomSocialValuePlaceholder: "Username"
+                vcardCustomSocialValuePlaceholder: "Username",
+                // TAMBAHAN BARU (IndexedDB & Share)
+                myCodes: "My Codes",
+                saveCode: "Save Code",
+                savedCodesTitle: "My Saved Codes",
+                shareLink: "Shareable Link (Multi URL)",
+                copy: "Copy",
+                copied: "Copied!",
+                close: "Close",
+                load: "Load",
+                delete: "Delete",
+                deleteConfirm: "Are you sure you want to delete this code?",
+                noSavedCodes: "You have no saved QR codes yet. Click 'Save Code' in the generator to add one!",
+                codeSaved: "QR Code saved!",
+                codeLoaded: "QR Code loaded!",
+                codeDeleted: "QR Code deleted."
             },
             id: {
                 title: "QR Code Generator Pro",
@@ -532,7 +608,22 @@
                 vcardCustomValuePlaceholder: "cth: https://...",
                 vcardCustomEmpty: "Belum ada kolom kustom.",
                 vcardCustomSocialLabelPlaceholder: "cth: Mastodon",
-                vcardCustomSocialValuePlaceholder: "Username"
+                vcardCustomSocialValuePlaceholder: "Username",
+                // TAMBAHAN BARU (IndexedDB & Share)
+                myCodes: "Kode Saya",
+                saveCode: "Simpan Kode",
+                savedCodesTitle: "Kode Tersimpan Saya",
+                shareLink: "Tautan Bagikan (Multi URL)",
+                copy: "Salin",
+                copied: "Tersalin!",
+                close: "Tutup",
+                load: "Muat",
+                delete: "Hapus",
+                deleteConfirm: "Apakah Anda yakin ingin menghapus kode ini?",
+                noSavedCodes: "Anda belum memiliki kode QR tersimpan. Klik 'Simpan Kode' di generator untuk menambahkannya!",
+                codeSaved: "Kode QR disimpan!",
+                codeLoaded: "Kode QR dimuat!",
+                codeDeleted: "Kode QR dihapus."
             }
         };
 
@@ -546,8 +637,8 @@
             document.documentElement.lang = lang;
             localStorage.setItem('lang', lang);
             
-            // Update tombol toggle
             langToggleBtn.textContent = lang === 'en' ? 'ID' : 'EN';
+            langToggleBtn.title = lang === 'en' ? 'Change Language' : 'Ganti Bahasa';
 
             // Ganti semua teks statis
             document.querySelectorAll('[data-lang]').forEach(el => {
@@ -565,17 +656,16 @@
                 }
             });
             
-            // Perbarui teks dinamis (seperti "belum ada tautan")
-            // Ini perlu dipanggil ulang setelah render
+            // Perbarui UI dinamis
             if (typeof initGenerator === 'function') {
-                // Jika UI generator aktif, render ulang bagian dinamis
                 const generatorUI = document.getElementById('generator-ui');
                 if (generatorUI.style.display !== 'none') {
-                    // Panggil ulang fungsi render yang berisi teks dinamis
-                    // Kita asumsikan fungsi ini akan ada di dalam scope initGenerator
                     if (window.renderMultiLinksList) window.renderMultiLinksList();
                     if (window.renderVcardCustomFields) window.renderVcardCustomFields();
                     if (window.renderVcardCustomSocials) window.renderVcardCustomSocials();
+                    // Update judul tombol my-codes
+                    const myCodesBtn = document.getElementById('my-codes-btn');
+                    if (myCodesBtn) myCodesBtn.title = translations[lang].myCodes;
                 }
             }
         }
@@ -595,7 +685,6 @@
             const generatorUI = document.getElementById('generator-ui');
             const landingPageUI = document.getElementById('landing-page-ui');
 
-            // Set bahasa awal dari localStorage
             const initialLang = localStorage.getItem('lang') || 'en';
             
             if (dataParam) {
@@ -632,7 +721,6 @@
                     });
 
                     lucide.createIcons();
-                    // Terapkan bahasa ke elemen footer di landing page
                     setLanguage(initialLang); 
 
                 } catch (e) {
@@ -656,7 +744,8 @@
             let multiLinksData = [];
             let vcardCustomFields = [];
             let vcardCustomSocials = [];
-            let logoImage = null;
+            let logoImage = null; // Ini akan menyimpan Base64 dari logo
+            let db = null; // Variabel untuk instance IndexedDB
 
             // --- Inisialisasi QR Code Instance ---
             qrCodeInstance = new QRCodeStyling({
@@ -690,28 +779,15 @@
             const tabPanelVcard = document.getElementById('tab-panel-vcard');
             const tabPanelWhatsapp = document.getElementById('tab-panel-whatsapp');
             
-            const vcardFirstName = document.getElementById('vcard-first-name');
-            const vcardLastName = document.getElementById('vcard-last-name');
-            const vcardPhone = document.getElementById('vcard-phone');
-            const vcardEmail = document.getElementById('vcard-email');
-            const vcardCompany = document.getElementById('vcard-company');
-            const vcardInputs = document.querySelectorAll('.vcard-input');
+            // Cache semua input data vCard (termasuk yang sosmed)
+            const vcardInputs = document.querySelectorAll('#tab-panel-vcard .data-input, #tab-panel-vcard .vcard-input');
             
-            const vcardTitle = document.getElementById('vcard-title');
-            const vcardNote = document.getElementById('vcard-note');
             const vcardCustomFieldsContainer = document.getElementById('vcard-custom-fields-container');
             const vcardAddFieldBtn = document.getElementById('vcard-add-field-btn');
-
-            const vcardSocialFacebook = document.getElementById('vcard-social-facebook');
-            const vcardSocialInstagram = document.getElementById('vcard-social-instagram');
-            const vcardSocialTikTok = document.getElementById('vcard-social-tiktok');
-            const vcardSocialLinkedIn = document.getElementById('vcard-social-linkedin');
-            const vcardSocialTwitter = document.getElementById('vcard-social-twitter');
             const vcardCustomSocialsContainer = document.getElementById('vcard-custom-socials-container');
             const vcardAddSocialBtn = document.getElementById('vcard-add-social-btn');
 
             const whatsappNumber = document.getElementById('whatsapp-number');
-
             const singleUrlInput = document.getElementById('single-url');
             const multiTitleInput = document.getElementById('multi-title');
             const addLinkBtn = document.getElementById('add-link-btn');
@@ -732,8 +808,257 @@
             const downloadPngBtn = document.getElementById('download-png-btn');
             const downloadSvgBtn = document.getElementById('download-svg-btn');
 
+            // Cache elemen baru (Share & DB)
+            const myCodesBtn = document.getElementById('my-codes-btn');
+            const saveQrBtn = document.getElementById('save-qr-btn');
+            const shareLinkWrapper = document.getElementById('share-link-wrapper');
+            const shareLinkInput = document.getElementById('share-link-input');
+            const copyLinkBtn = document.getElementById('copy-link-btn');
+            const historyModal = document.getElementById('history-modal');
+            const historyContent = document.getElementById('history-content');
+            const closeHistoryBtn = document.getElementById('close-history-btn');
 
-            // --- Fungsi Helper ---
+            // --- Bagian 3: Fungsi IndexedDB ---
+
+            function initDB() {
+                const dbName = "QRGeneratorDB";
+                const request = indexedDB.open(dbName, 1);
+
+                request.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains('qrcodes')) {
+                        // Buat object store 'qrcodes' dengan 'id' sebagai auto-incrementing key
+                        dbInstance.createObjectStore('qrcodes', { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    console.log('Database initialized successfully.');
+                };
+
+                request.onerror = (e) => {
+                    console.error('Error initializing database:', e.target.error);
+                };
+            }
+            
+            // Fungsi untuk mendapatkan semua data input saat ini
+            function getCurrentConfig() {
+                // Kumpulkan semua data vcard
+                const vcardData = {};
+                vcardInputs.forEach(input => {
+                    if (input.id) { // Pastikan input punya ID
+                        vcardData[input.id] = input.value;
+                    }
+                });
+                
+                return {
+                    // Simpan semua style, termasuk logo base64 (jika ada)
+                    styles: qrCodeInstance.options,
+                    // Simpan data
+                    activeTab: activeTab,
+                    data: {
+                        singleUrl: singleUrlInput.value,
+                        multiTitle: multiTitleInput.value,
+                        multiLinksData: multiLinksData, // array
+                        vcardData: vcardData, // objek
+                        vcardCustomFields: vcardCustomFields, // array
+                        vcardCustomSocials: vcardCustomSocials, // array
+                        whatsappNumber: whatsappNumber.value
+                    },
+                    timestamp: new Date().toISOString()
+                };
+            }
+
+            function saveQRCode() {
+                if (!db) {
+                    console.error('Database is not initialized.');
+                    return;
+                }
+                
+                const config = getCurrentConfig();
+                
+                // Tentukan nama untuk preview
+                let name = 'QR Code';
+                try {
+                    switch(config.activeTab) {
+                        case 'single': name = config.data.singleUrl.substring(0, 50) || 'Single URL'; break;
+                        case 'multi': name = config.data.multiTitle || 'Multi URL'; break;
+                        case 'vcard': name = config.data.vcardData['vcard-first-name'] || 'vCard'; break;
+                        case 'whatsapp': name = config.data.whatsappNumber || 'WhatsApp'; break;
+                    }
+                } catch (e) {}
+                
+                config.name = name; // Tambahkan nama ke config
+                
+                const transaction = db.transaction(['qrcodes'], 'readwrite');
+                const store = transaction.objectStore('qrcodes');
+                const request = store.add(config);
+                
+                request.onsuccess = () => {
+                    console.log('QR Code saved successfully!');
+                    // Beri notifikasi sederhana (opsional)
+                    const originalText = saveQrBtn.textContent;
+                    saveQrBtn.textContent = translations[currentLang].codeSaved;
+                    saveQrBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    saveQrBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                    setTimeout(() => {
+                        saveQrBtn.textContent = originalText;
+                        saveQrBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        saveQrBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    }, 2000);
+                };
+                
+                request.onerror = (e) => {
+                    console.error('Error saving QR Code:', e.target.error);
+                };
+            }
+
+            function showHistory() {
+                if (!db) return;
+                
+                historyContent.innerHTML = ''; // Kosongkan
+                historyModal.classList.remove('hidden');
+                lucide.createIcons(); // Render ikon 'X' di tombol close
+
+                const store = db.transaction('qrcodes').objectStore('qrcodes');
+                const request = store.getAll();
+                
+                request.onsuccess = (e) => {
+                    const codes = e.target.result.reverse(); // Tampilkan yang terbaru dulu
+                    
+                    if (codes.length === 0) {
+                        historyContent.innerHTML = `<p class="text-gray-500 dark:text-gray-400 text-center">${translations[currentLang].noSavedCodes}</p>`;
+                        return;
+                    }
+                    
+                    codes.forEach(code => {
+                        const date = new Date(code.timestamp).toLocaleString();
+                        const card = document.createElement('div');
+                        card.className = 'flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600';
+                        
+                        // Buat mini preview QR
+                        const previewWrapper = document.createElement('div');
+                        previewWrapper.className = 'w-20 h-20 bg-white dark:bg-gray-100 rounded-md flex-shrink-0 flex items-center justify-center';
+
+                        // PERBAIKAN: Tambahkan pengecekan jika styles atau data tidak ada
+                        if (code && code.styles && code.styles.data) {
+                            new QRCodeStyling({
+                                width: 80,
+                                height: 80,
+                                type: 'svg',
+                                data: code.styles.data, // Data ada di dalam styles
+                                image: code.styles.image,
+                                dotsOptions: code.styles.dotsOptions,
+                                backgroundOptions: { color: '#ffffff' }, // Paksa putih
+                                cornersSquareOptions: code.styles.cornersSquareOptions,
+                                cornersDotOptions: code.styles.cornersDotOptions,
+                                imageOptions: code.styles.imageOptions
+                            }).append(previewWrapper);
+                        } else {
+                            // Tampilkan placeholder jika data rusak
+                            previewWrapper.innerHTML = `<i data-lucide="image-off" class="w-10 h-10 text-gray-400"></i>`;
+                        }
+
+                        card.innerHTML = `
+                            <div class="flex-1 min-w-0">
+                                <p class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 truncate" title="${code.name || ''}">${code.name || 'Untitled'}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${(code.activeTab || 'N/A').toUpperCase()} &bull; ${date}</p>
+                            </div>
+                            <div class="flex-shrink-0 flex gap-2">
+                                <button data-id="${code.id}" class="load-code-btn p-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">
+                                    <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i>
+                                    ${translations[currentLang].load}
+                                </button>
+                                <button data-id="${code.id}" class="delete-code-btn p-2 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-500 rounded-md">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        `;
+                        // Sisipkan preview QR di awal card
+                        card.prepend(previewWrapper);
+                        historyContent.appendChild(card);
+                    });
+                    
+                    lucide.createIcons();
+                };
+            }
+            
+            function loadQRCode(id) {
+                if (!db) return;
+                
+                const store = db.transaction('qrcodes').objectStore('qrcodes');
+                const request = store.get(id);
+                
+                request.onsuccess = (e) => {
+                    const config = e.target.result;
+                    if (!config) {
+                        console.error('Config not found');
+                        return;
+                    }
+                    
+                    // 1. Restore Styles
+                    qrCodeInstance.update(config.styles);
+                    logoImage = config.styles.image || null; // Restore logo global
+                    // Update input kustomisasi (agar UI sinkron)
+                    colorDots.value = config.styles.dotsOptions.color || '#000000';
+                    colorBg.value = config.styles.backgroundOptions.color || '#ffffff';
+                    colorCornerSquare.value = config.styles.cornersSquareOptions.color || '#000000';
+                    colorCornerDot.value = config.styles.cornersDotOptions.color || '#000000';
+                    styleDots.value = config.styles.dotsOptions.type || 'square';
+                    styleCornerSquare.value = config.styles.cornersSquareOptions.type || 'square';
+
+                    // 2. Restore Data
+                    const data = config.data;
+                    singleUrlInput.value = data.singleUrl || '';
+                    multiTitleInput.value = data.multiTitle || '';
+                    multiLinksData = data.multiLinksData || [];
+                    
+                    // Restore vcard inputs
+                    if (data.vcardData) {
+                        for (const [id, value] of Object.entries(data.vcardData)) {
+                            const el = document.getElementById(id);
+                            if (el) el.value = value;
+                        }
+                    }
+                    vcardCustomFields = data.vcardCustomFields || [];
+                    vcardCustomSocials = data.vcardCustomSocials || [];
+                    
+                    whatsappNumber.value = data.whatsappNumber || '';
+                    
+                    // 3. Render Ulang UI
+                    renderMultiLinksList();
+                    renderVcardCustomFields();
+                    renderVcardCustomSocials();
+                    
+                    // 4. Set Tab Aktif
+                    setActiveTab(config.activeTab);
+                    
+                    // 5. Tutup Modal
+                    historyModal.classList.add('hidden');
+                    console.log('QR Code loaded!');
+                };
+            }
+
+            function deleteQRCode(id) {
+                if (!db) return;
+                
+                if (!confirm(translations[currentLang].deleteConfirm)) {
+                    return;
+                }
+                
+                const transaction = db.transaction(['qrcodes'], 'readwrite');
+                const store = transaction.objectStore('qrcodes');
+                const request = store.delete(id);
+                
+                request.onsuccess = () => {
+                    console.log('QR Code deleted');
+                    showHistory(); // Refresh tampilan history
+                };
+            }
+
+
+            // --- Fungsi Helper Lainnya ---
             
             function updateThemeIcon() {
                 lucide.createIcons();
@@ -768,51 +1093,48 @@
                         const encodedData = btoa(JSON.stringify(dataObject));
                         const baseUrl = window.location.href.split('?')[0];
                         dataToEncode = `${baseUrl}?data=${encodedData}`;
+                        
+                        // Update input share link
+                        shareLinkInput.value = dataToEncode;
                         break;
 
                     case 'vcard':
-                        let vcardLines = [
-                            'BEGIN:VCARD',
-                            'VERSION:3.0',
-                            `N:${vcardLastName.value || ''};${vcardFirstName.value || ''};;;`,
-                            `FN:${vcardFirstName.value || ''} ${vcardLastName.value || ''}`,
-                            `ORG:${vcardCompany.value || ''}`,
-                            `TITLE:${vcardTitle.value || ''}`,
-                            `TEL;TYPE=CELL:${vcardPhone.value || ''}`,
-                            `EMAIL:${vcardEmail.value || ''}`,
-                            `NOTE:${vcardNote.value || ''}`
-                        ];
+                        let vcardLines = [ 'BEGIN:VCARD', 'VERSION:3.0' ];
+                        
+                        // Ambil dari objek vcardData yang sudah di-cache
+                        const vCardForm = {};
+                        vcardInputs.forEach(input => { if (input.id) vCardForm[input.id] = input.value; });
+
+                        vcardLines.push(`N:${vCardForm['vcard-last-name'] || ''};${vCardForm['vcard-first-name'] || ''};;;`);
+                        vcardLines.push(`FN:${vCardForm['vcard-first-name'] || ''} ${vCardForm['vcard-last-name'] || ''}`);
+                        vcardLines.push(`ORG:${vCardForm['vcard-company'] || ''}`);
+                        vcardLines.push(`TITLE:${vCardForm['vcard-title'] || ''}`);
+                        vcardLines.push(`TEL;TYPE=CELL:${vCardForm['vcard-phone'] || ''}`);
+                        vcardLines.push(`EMAIL:${vCardForm['vcard-email'] || ''}`);
+                        vcardLines.push(`NOTE:${vCardForm['vcard-note'] || ''}`);
 
                         const socials = {
-                            facebook: vcardSocialFacebook.value,
-                            instagram: vcardSocialInstagram.value,
-                            tiktok: vcardSocialTikTok.value,
-                            linkedin: vcardSocialLinkedIn.value,
-                            twitter: vcardSocialTwitter.value
+                            facebook: vCardForm['vcard-social-facebook'],
+                            instagram: vCardForm['vcard-social-instagram'],
+                            tiktok: vCardForm['vcard-social-tiktok'],
+                            linkedin: vCardForm['vcard-social-linkedin'],
+                            twitter: vCardForm['vcard-social-twitter']
                         };
                         
                         for (const [type, username] of Object.entries(socials)) {
-                            if (username) {
-                                let val = username.replace('@', '');
-                                vcardLines.push(`X-SOCIALPROFILE;TYPE=${type}:${val}`);
-                            }
+                            if (username) vcardLines.push(`X-SOCIALPROFILE;TYPE=${type}:${username.replace('@', '')}`);
                         }
                         
                         vcardCustomSocials.forEach(social => {
-                            const label = (social.label || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-                            const value = (social.value || '').trim().replace('@', '');
-                            if (label && value) {
-                                vcardLines.push(`X-SOCIALPROFILE;TYPE=${label}:${value}`);
-                            }
+                            if (social.label && social.value) vcardLines.push(`X-SOCIALPROFILE;TYPE=${social.label.toLowerCase().replace(/[^a-z0-9-]/g, '')}:${social.value.replace('@', '')}`);
                         });
 
                         vcardCustomFields.forEach(field => {
-                            const label = (field.label || '').trim();
-                            const value = (field.value || '').trim();
-                            if (label && value) {
-                                if (label.toLowerCase() === 'website') vcardLines.push(`URL:${value}`);
-                                else if (label.toLowerCase() === 'alamat' || label.toLowerCase() === 'address') vcardLines.push(`ADR;TYPE=HOME:;;${value};;;;`);
-                                else vcardLines.push(`X-${label.replace(/[^A-Za-z0-9-]/g, '').toUpperCase()}:${value}`);
+                            if (field.label && field.value) {
+                                const label = field.label.toLowerCase();
+                                if (label === 'website') vcardLines.push(`URL:${field.value}`);
+                                else if (label === 'alamat' || label === 'address') vcardLines.push(`ADR;TYPE=HOME:;;${field.value};;;;`);
+                                else vcardLines.push(`X-${field.label.replace(/[^A-Za-z0-9-]/g, '').toUpperCase()}:${field.value}`);
                             }
                         });
 
@@ -987,7 +1309,10 @@
                     tab.panel.style.display = isActive ? 'block' : 'none';
                 });
 
+                // Tampilkan/sembunyikan wrapper share link
+                shareLinkWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
                 multiUrlPreviewWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+                
                 updateQrData();
             }
 
@@ -995,35 +1320,28 @@
                 tab.btn.addEventListener('click', () => setActiveTab(tab.name));
             });
                 
+            // Listener untuk semua input data (kecuali yang dinamis)
             singleUrlInput.addEventListener('input', updateQrData);
             multiTitleInput.addEventListener('input', () => {
                 updateMultiUrlPreview();
                 updateQrData();
             });
-            
-            vcardInputs.forEach(input => {
-                input.addEventListener('input', updateQrData);
-            });
-            
+            vcardInputs.forEach(input => input.addEventListener('input', updateQrData));
             whatsappNumber.addEventListener('input', updateQrData);
             
+            // Listener untuk link dinamis (Multi URL)
             addLinkBtn.addEventListener('click', () => {
                 multiLinksData.push({ id: Date.now().toString(), icon: 'link', label: '', url: '' });
                 renderMultiLinksList();
             });
-            
             multiLinksContainer.addEventListener('input', (e) => {
                 if (e.target.classList.contains('multi-link-input')) {
-                    const id = e.target.dataset.id;
-                    const field = e.target.dataset.field;
-                    const value = e.target.value;
-                    const link = multiLinksData.find(l => l.id === id);
-                    if (link) link[field] = value;
+                    const link = multiLinksData.find(l => l.id === e.target.dataset.id);
+                    if (link) link[e.target.dataset.field] = e.target.value;
                     updateMultiUrlPreview();
                     updateQrData();
                 }
             });
-            
             multiLinksContainer.addEventListener('click', (e) => {
                 const removeBtn = e.target.closest('.remove-link-btn');
                 if (removeBtn) {
@@ -1032,22 +1350,18 @@
                 }
             });
 
+            // Listener untuk field dinamis (vCard Custom)
             vcardAddFieldBtn.addEventListener('click', () => {
                 vcardCustomFields.push({ id: Date.now().toString(), label: '', value: '' });
                 renderVcardCustomFields();
             });
-            
             vcardCustomFieldsContainer.addEventListener('input', (e) => {
                 if (e.target.classList.contains('vcard-custom-input')) {
-                    const id = e.target.dataset.id;
-                    const field = e.target.dataset.field;
-                    const value = e.target.value;
-                    const vcardField = vcardCustomFields.find(f => f.id === id);
-                    if (vcardField) vcardField[field] = value;
+                    const field = vcardCustomFields.find(f => f.id === e.target.dataset.id);
+                    if (field) field[e.target.dataset.field] = e.target.value;
                     updateQrData();
                 }
             });
-            
             vcardCustomFieldsContainer.addEventListener('click', (e) => {
                 const removeBtn = e.target.closest('.vcard-remove-field-btn');
                 if (removeBtn) {
@@ -1056,22 +1370,18 @@
                 }
             });
             
+            // Listener untuk field dinamis (vCard Social Custom)
             vcardAddSocialBtn.addEventListener('click', () => {
                 vcardCustomSocials.push({ id: Date.now().toString(), label: '', value: '' });
                 renderVcardCustomSocials();
             });
-            
             vcardCustomSocialsContainer.addEventListener('input', (e) => {
                 if (e.target.classList.contains('vcard-custom-social-input')) {
-                    const id = e.target.dataset.id;
-                    const field = e.target.dataset.field;
-                    const value = e.target.value;
-                    const vcardSocial = vcardCustomSocials.find(f => f.id === id);
-                    if (vcardSocial) vcardSocial[field] = value;
+                    const social = vcardCustomSocials.find(f => f.id === e.target.dataset.id);
+                    if (social) social[e.target.dataset.field] = e.target.value;
                     updateQrData();
                 }
             });
-            
             vcardCustomSocialsContainer.addEventListener('click', (e) => {
                 const removeBtn = e.target.closest('.vcard-remove-social-btn');
                 if (removeBtn) {
@@ -1080,6 +1390,7 @@
                 }
             });
 
+            // Listener Kustomisasi
             colorDots.addEventListener('input', (e) => qrCodeInstance.update({ dotsOptions: { color: e.target.value } }));
             colorBg.addEventListener('input', (e) => qrCodeInstance.update({ backgroundOptions: { color: e.target.value } }));
             colorCornerSquare.addEventListener('input', (e) => qrCodeInstance.update({ cornersSquareOptions: { color: e.target.value } }));
@@ -1087,32 +1398,74 @@
             styleDots.addEventListener('change', (e) => qrCodeInstance.update({ dotsOptions: { type: e.target.value } }));
             styleCornerSquare.addEventListener('change', (e) => qrCodeInstance.update({ cornersSquareOptions: { type: e.target.value } }));
 
+            // Listener Logo
             logoUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    logoImage = event.target.result;
+                    logoImage = event.target.result; // Simpan base64
                     qrCodeInstance.update({ image: logoImage });
                 };
                 reader.readAsDataURL(file);
             });
-            
             logoRemove.addEventListener('click', () => {
                 logoImage = null;
                 logoUpload.value = '';
                 qrCodeInstance.update({ image: null });
             });
             
+            // Listener Download
             downloadPngBtn.addEventListener('click', () => qrCodeInstance.download({ name: 'qr-code', extension: 'png' }));
             downloadSvgBtn.addEventListener('click', () => qrCodeInstance.download({ name: 'qr-code', extension: 'svg' }));
+
+            // --- Listener Baru (Share & DB) ---
+            
+            copyLinkBtn.addEventListener('click', () => {
+                shareLinkInput.select();
+                document.execCommand('copy'); // Sesuai instruksi persona (lebih kompatibel)
+                
+                const originalText = copyLinkBtn.innerHTML;
+                copyLinkBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-green-600"></i>`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    copyLinkBtn.innerHTML = originalText;
+                    lucide.createIcons();
+                }, 2000);
+            });
+            
+            saveQrBtn.addEventListener('click', saveQRCode);
+
+            myCodesBtn.addEventListener('click', showHistory);
+            
+            closeHistoryBtn.addEventListener('click', () => {
+                historyModal.classList.add('hidden');
+            });
+
+            // Event delegation untuk tombol Load & Delete di modal
+            historyContent.addEventListener('click', (e) => {
+                const loadBtn = e.target.closest('.load-code-btn');
+                if (loadBtn) {
+                    const id = parseInt(loadBtn.dataset.id, 10);
+                    loadQRCode(id);
+                    return;
+                }
+                
+                const deleteBtn = e.target.closest('.delete-code-btn');
+                if (deleteBtn) {
+                    const id = parseInt(deleteBtn.dataset.id, 10);
+                    deleteQRCode(id);
+                    return;
+                }
+            });
+
             
             // --- Inisialisasi Awal ---
-            // Terapkan bahasa yang tersimpan saat memuat
+            initDB(); // Inisialisasi IndexedDB
+            
             const initialLang = localStorage.getItem('lang') || 'en';
             setLanguage(initialLang);
             
-            // Render dinamis awal (sekarang sudah sadar bahasa)
             renderMultiLinksList();
             renderVcardCustomFields();
             renderVcardCustomSocials();
