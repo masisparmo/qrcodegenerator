@@ -10,6 +10,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator Pro</title>
+    <!-- TAMBAHAN: Favicon ditambahkan -->
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/masisparmo/qrcodegenerator/refs/heads/main/favicon.ico">
 
     <!-- Muat Library QR Code -->
     <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
@@ -105,9 +107,13 @@
         -->
         <header class="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700 sticky top-0 z-50">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100" data-lang="title">QR Code Generator Pro</h1>
-                    <p class="text-gray-600 dark:text-gray-300" data-lang="subtitle">Free QR Code Generator PRO Multi Function</p>
+                <!-- PERUBAHAN: Menambahkan flex container dan logo -->
+                <div class="flex items-center gap-3">
+                    <img src="https://raw.githubusercontent.com/masisparmo/qrcodegenerator/refs/heads/main/qrcodegenerator-logo.png" alt="QR Code Generator Pro Logo" class="w-10 h-10 rounded-md">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100" data-lang="title">QR Code Generator Pro</h1>
+                        <p class="text-gray-600 dark:text-gray-300" data-lang="subtitle">Free QR Code Generator PRO Multi Function</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Tombol "My Codes" -->
