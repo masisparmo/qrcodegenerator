@@ -90,14 +90,14 @@
 <body class="bg-gray-50 dark:bg-gray-900 font-inter antialiased text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
 
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <header id="generator-header" class="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center min-h-16 py-3"> <!-- [PERBAIKAN] Mengganti h-16 dengan min-h-16 py-3 -->
+            <div class="flex justify-between items-center min-h-16 py-3">
                 <!-- Logo dan Judul -->
                 <div class="flex items-center gap-3">
                     <img src="https://raw.githubusercontent.com/masisparmo/qrcodegenerator/refs/heads/main/qrcodegenerator-logo.png" alt="Logo" class="w-10 h-10 rounded-md object-cover">
                     <div class="flex flex-col">
-                        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white" data-lang="title">QR Code Generator Pro</h1> <!-- [PERBAIKAN] Ukuran font responsif -->
+                        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white" data-lang="title">QR Code Generator Pro</h1>
                         <p class="text-xs text-gray-500 dark:text-gray-400 -mt-1" data-lang="subtitle">Free QR Code Generator PRO Multi Function</p>
                     </div>
                 </div>
@@ -119,8 +119,8 @@
         </div>
     </header>
 
-    <!-- Konten Utama -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Konten Utama Generator -->
+    <main id="generator-main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Kolom 1: Tipe QR dan Input Data -->
@@ -274,7 +274,6 @@
                                 <input type="color" id="color-corner-square" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
                                 <label for="color-corner-square" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerSquare">Corner Squares</label>
                             </div>
-                            <!-- [PERBAIKAN] Menambahkan kembali Corner Dots -->
                             <div class="flex items-center gap-2">
                                 <input type="color" id="color-corner-dot" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
                                 <label for="color-corner-dot" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerDot">Corner Dots</label>
@@ -305,7 +304,6 @@
                                     <option value="extra-rounded">Extra Rounded</option>
                                 </select>
                             </div>
-                             <!-- [PERBAIKAN] Menambahkan kembali Corner Dots Style -->
                             <div class="sm:col-span-2">
                                 <label for="style-corner-dot" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCornerDotType">Corner Dot Style</label>
                                 <select id="style-corner-dot" class="mt-1 block w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -392,6 +390,23 @@
             </div>
         </div>
     </main>
+
+    <!-- [PERBAIKAN] Halaman Arahan (Landing Page) Multi URL -->
+    <div id="landing-page" class="hidden">
+        <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+            <div class="w-full max-w-md mx-auto">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
+                    <h1 id="landing-title" class="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6"></h1>
+                    <div id="landing-links-container" class="space-y-4">
+                        <!-- Tautan dinamis akan ditambahkan di sini -->
+                    </div>
+                </div>
+                <footer class="mt-4 text-center">
+                    <a href="/" class="text-xs text-gray-500 dark:text-gray-400 hover:underline" data-lang="footerCreate">Create your own QR Code</a>
+                </footer>
+            </div>
+        </div>
+    </div>
     
     <!-- Modal "My Codes" (History) -->
     <div id="history-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -515,6 +530,7 @@
                 vcardSocialTikTok: "TikTok (Username or URL)",
                 vcardSocialLinkedIn: "LinkedIn (Username or URL)",
                 vcardSocialX: "X / Twitter (Username or URL)",
+                footerCreate: "Create your own QR Code", // [PERBAIKAN] Teks baru
             },
             'id': {
                 title: "QR Code Generator Pro",
@@ -592,11 +608,19 @@
                 vcardSocialTikTok: "TikTok (Username atau URL)",
                 vcardSocialLinkedIn: "LinkedIn (Username atau URL)",
                 vcardSocialX: "X / Twitter (Username atau URL)",
+                footerCreate: "Buat QR Code Anda sendiri", // [PERBAIKAN] Teks baru
             }
         };
         let currentLang = 'en'; // Default bahasa Inggris
 
         // --- Cache Elemen DOM ---
+        // [PERBAIKAN] Cache elemen baru
+        const generatorHeader = document.getElementById('generator-header');
+        const generatorMain = document.getElementById('generator-main');
+        const landingPage = document.getElementById('landing-page');
+        const landingTitle = document.getElementById('landing-title');
+        const landingLinksContainer = document.getElementById('landing-links-container');
+        
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconSun = document.getElementById('theme-icon-sun');
         const themeIconMoon = document.getElementById('theme-icon-moon');
@@ -736,7 +760,6 @@
             }
 
             // 2. Kumpulkan Opsi Kustomisasi
-            // [PERBAIKAN] Simpan logo asli DAN gambar komposit
             const currentStyles = {
                 dotsOptions: qrCodeInstance._options.dotsOptions,
                 backgroundOptions: qrCodeInstance._options.backgroundOptions,
@@ -873,7 +896,6 @@
                     originalLogo: null
                 };
                 
-                // [PERBAIKAN] Ambil logo ASLI untuk di-load
                 const savedLogoSrc = savedStyles.originalLogo || null;
                 
                 // Hapus gambar dari objek styles sebelum di-apply
@@ -991,7 +1013,7 @@
 
                 codes.forEach(code => {
                     let previewImg = '';
-                    const styles = code.styles || {}; // [PERBAIKAN] Penjaga
+                    const styles = code.styles || {}; 
 
                     if (styles.dotsOptions) {
                         const miniQR = new QRCodeStyling({
@@ -1003,10 +1025,10 @@
                             backgroundOptions: styles.backgroundOptions,
                             cornersSquareOptions: styles.cornersSquareOptions,
                             cornersDotOptions: styles.cornersDotOptions, 
-                            image: styles.compositeImage || '', // [PERBAIKAN] Gunakan gambar komposit
+                            image: styles.compositeImage || '', 
                             imageOptions: {
                                 crossOrigin: 'anonymous',
-                                margin: 2, // Margin lebih kecil untuk preview
+                                margin: 2, 
                                 imageSize: 0.4
                             }
                         });
@@ -1121,7 +1143,6 @@
 
             if (hasLogo) {
                 const logoRatio = logoImage.width / logoImage.height;
-                // [PERBAIKAN] Jaga rasio aspek
                 const maxSize = size * 0.5; 
                 
                 let logoW = maxSize;
@@ -1440,23 +1461,56 @@
                 tab.btn.addEventListener('click', () => window.setActiveTab(tab.name));
             });
             
-            // Set Tab Awal
-            window.setActiveTab('single');
+            // Set Tab Awal (Logika ini dipindahkan ke bawah)
+            // window.setActiveTab('single'); 
             
-            // Periksa URL untuk data Multi-URL
+            // [PERBAIKAN] Logika Cek URL untuk Landing Page
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('data')) {
+                // --- Mode Landing Page ---
                 try {
                     const data = JSON.parse(decodeURIComponent(atob(urlParams.get('data'))));
-                    multiTitleInput.value = data.title;
-                    multiLinksData = data.links;
-                    renderMultiLinksList();
-                    window.setActiveTab('multi');
-                    // Hapus parameter dari URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // Sembunyikan generator, tampilkan landing page
+                    generatorHeader.classList.add('hidden');
+                    generatorMain.classList.add('hidden');
+                    landingPage.classList.remove('hidden');
+                    
+                    // Isi data
+                    landingTitle.textContent = data.title || 'My Links';
+                    document.title = data.title || 'My Links'; // Update judul tab browser
+                    landingLinksContainer.innerHTML = ''; // Kosongkan
+                    
+                    if (data.links && data.links.length > 0) {
+                        data.links.forEach(link => {
+                            if (link.label && link.url) {
+                                const linkEl = document.createElement('a');
+                                linkEl.href = link.url;
+                                linkEl.target = "_blank";
+                                linkEl.rel = "noopener noreferrer";
+                                linkEl.className = "block w-full text-center px-6 py-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 transform hover:scale-105";
+                                linkEl.textContent = link.label;
+                                landingLinksContainer.appendChild(linkEl);
+                            }
+                        });
+                    } else {
+                        landingLinksContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No links found.</p>`;
+                    }
+                    
+                    // Setel bahasa footer
+                    const savedLang = localStorage.getItem('lang') || 'en';
+                    currentLang = savedLang;
+                    document.documentElement.lang = savedLang;
+                    document.querySelector('[data-lang="footerCreate"]').textContent = translations[savedLang].footerCreate;
+
                 } catch (e) {
                     console.error('Failed to parse URL data:', e);
+                    // Jika data rusak, tampilkan generator
+                    window.setActiveTab('single');
                 }
+            } else {
+                // --- Mode Generator (Normal) ---
+                window.setActiveTab('single');
             }
                 
             // Listener untuk semua input data (kecuali yang dinamis)
