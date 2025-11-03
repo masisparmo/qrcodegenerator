@@ -961,14 +961,7 @@
                 const savedLogoSrc = savedStyles.originalLogo || null;
                 
                 // [FIX] Create a clean options object to avoid passing unknown properties
-                const updateOptions = {
-                    dotsOptions: savedStyles.dotsOptions,
-                    backgroundOptions: savedStyles.backgroundOptions,
-                    cornersSquareOptions: savedStyles.cornersSquareOptions,
-                    cornersDotOptions: savedStyles.cornersDotOptions,
-                    image: null // Start with no image; it will be loaded later
-                };
-                qrCodeInstance.update(updateOptions);
+                // This has been removed because updateQrData now handles all updates.
                 
                 // Update input kustomisasi (agar UI sinkron)
                 colorDots.value = savedStyles.dotsOptions.color || '#000000';
@@ -1261,8 +1254,8 @@
         }
 
         async function generateOverlayImage() {
-            const dataUrl = await getCompositeImageDataUrl();
-            qrCodeInstance.update({ image: dataUrl });
+            // This function now only returns the data URL, it does not update the QR code.
+            return getCompositeImageDataUrl();
         }
 
         async function updateQrData() {
@@ -1292,22 +1285,15 @@
                 customTextInput.value = defaultText;
                 customText = defaultText;
             }
-            
-            // 3. Generate gambar overlay (sekarang async)
-            await generateOverlayImage();
 
-            // 4. Tentukan Data untuk Di-encode
+            // 3. Tentukan Data untuk Di-encode
             let dataToEncode = 'https://github.com/gemini';
-            
             switch (activeTab) {
                 case 'single':
                     dataToEncode = formatUrl(singleUrlInput.value) || 'https://github.com/gemini';
                     break;
                 case 'multi':
-                    const formattedLinks = multiLinksData.map(link => ({
-                        ...link,
-                        url: formatUrl(link.url)
-                    }));
+                    const formattedLinks = multiLinksData.map(link => ({ ...link, url: formatUrl(link.url) }));
                     const pageData = {
                         title: multiTitleInput.value,
                         links: formattedLinks,
@@ -1316,7 +1302,7 @@
                     const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(pageData))));
                     const url = new URL(window.location.href);
                     dataToEncode = `${url.origin}${url.pathname}?data=${encodedData}`;
-                    shareLinkInput.value = dataToEncode; // Update link share
+                    shareLinkInput.value = dataToEncode;
                     break;
                 case 'vcard':
                     let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
@@ -1328,41 +1314,32 @@
                     if (vcardInputs.title.value) vcard += `TITLE:${vcardInputs.title.value}\n`;
                     if (vcardInputs.note.value) vcard += `NOTE:${vcardInputs.note.value.replace(/\n/g, '\\n')}\n`;
                     
-                    const facebookUrl = normalizeSocialURL(vcardInputs.socials.facebook.value, 'facebook');
-                    if (facebookUrl) vcard += `X-SOCIALPROFILE;TYPE=facebook:${facebookUrl}\n`;
-                    
-                    const instagramUrl = normalizeSocialURL(vcardInputs.socials.instagram.value, 'instagram');
-                    if (instagramUrl) vcard += `X-SOCIALPROFILE;TYPE=instagram:${instagramUrl}\n`;
+                    const socialUrls = {
+                        facebook: normalizeSocialURL(vcardInputs.socials.facebook.value, 'facebook'),
+                        instagram: normalizeSocialURL(vcardInputs.socials.instagram.value, 'instagram'),
+                        tiktok: normalizeSocialURL(vcardInputs.socials.tiktok.value, 'tiktok'),
+                        linkedin: normalizeSocialURL(vcardInputs.socials.linkedin.value, 'linkedin'),
+                        x: normalizeSocialURL(vcardInputs.socials.x.value, 'x')
+                    };
+                    if (socialUrls.facebook) vcard += `X-SOCIALPROFILE;TYPE=facebook:${socialUrls.facebook}\n`;
+                    if (socialUrls.instagram) vcard += `X-SOCIALPROFILE;TYPE=instagram:${socialUrls.instagram}\n`;
+                    if (socialUrls.tiktok) vcard += `X-SOCIALPROFILE;TYPE=tiktok:${socialUrls.tiktok}\n`;
+                    if (socialUrls.linkedin) vcard += `X-SOCIALPROFILE;TYPE=linkedin:${socialUrls.linkedin}\n`;
+                    if (socialUrls.x) vcard += `X-SOCIALPROFILE;TYPE=twitter:${socialUrls.x}\n`;
 
-                    const tiktokUrl = normalizeSocialURL(vcardInputs.socials.tiktok.value, 'tiktok');
-                    if (tiktokUrl) vcard += `X-SOCIALPROFILE;TYPE=tiktok:${tiktokUrl}\n`;
-
-                    const linkedinUrl = normalizeSocialURL(vcardInputs.socials.linkedin.value, 'linkedin');
-                    if (linkedinUrl) vcard += `X-SOCIALPROFILE;TYPE=linkedin:${linkedinUrl}\n`;
-
-                    const xUrl = normalizeSocialURL(vcardInputs.socials.x.value, 'x');
-                    if (xUrl) vcard += `X-SOCIALPROFILE;TYPE=twitter:${xUrl}\n`;
-                    
                     vcardCustomSocials.forEach(social => {
                         if (social.label && social.value) {
-                            const platform = social.label.toLowerCase();
-                            const socialUrl = normalizeSocialURL(social.value, platform);
-                            if (socialUrl) {
-                                vcard += `X-SOCIALPROFILE;TYPE=${platform}:${socialUrl}\n`;
-                            }
+                            const socialUrl = normalizeSocialURL(social.value, social.label.toLowerCase());
+                            if (socialUrl) vcard += `X-SOCIALPROFILE;TYPE=${social.label.toLowerCase()}:${socialUrl}\n`;
                         }
                     });
 
                     vcardCustomFields.forEach(field => {
                         if (field.label && field.value) {
                             const label = field.label.toUpperCase();
-                            if (label === 'WEBSITE' || label === 'URL') {
-                                vcard += `URL:${field.value}\n`;
-                            } else if (label === 'ADDRESS' || label === 'ALAMAT') {
-                                vcard += `ADR;TYPE=HOME:;;${field.value.replace(/\n/g, ' ')}\n`;
-                            } else {
-                                vcard += `X-${field.label.replace(/\s/g, '-')}:${field.value}\n`;
-                            }
+                            if (['WEBSITE', 'URL'].includes(label)) vcard += `URL:${field.value}\n`;
+                            else if (['ADDRESS', 'ALAMAT'].includes(label)) vcard += `ADR;TYPE=HOME:;;${field.value.replace(/\n/g, ' ')}\n`;
+                            else vcard += `X-${field.label.replace(/\s/g, '-')}:${field.value}\n`;
                         }
                     });
 
@@ -1374,8 +1351,20 @@
                     break;
             }
 
-            // 5. Update data QR code
-            qrCodeInstance.update({ data: dataToEncode });
+            // 4. Dapatkan semua data dalam satu objek
+            const compositeImageUrl = await generateOverlayImage();
+
+            const options = {
+                data: dataToEncode,
+                image: compositeImageUrl,
+                dotsOptions: { color: colorDots.value, type: styleDots.value },
+                backgroundOptions: { color: colorBg.value },
+                cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
+                cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
+            };
+
+            // 5. Panggil update() sekali dengan semua opsi
+            qrCodeInstance.update(options);
         }
 
         // Fungsi render dinamis (dibuat global di window agar setLanguage bisa memanggilnya)
@@ -1636,11 +1625,11 @@
             customTextInput.addEventListener('input', (e) => {
                 customText = e.target.value;
                 userHasEditedText = true; // User sudah mengedit!
-                generateOverlayImage();
+                updateQrData();
             });
             customTextColorInput.addEventListener('input', (e) => {
                 customTextColor = e.target.value;
-                generateOverlayImage(); // Langsung update
+                updateQrData(); // Langsung update
             });
             textRemoveBtn.addEventListener('click', () => {
                 customText = '';
@@ -1657,13 +1646,8 @@
             ];
             
             const updateAllStyles = () => {
-                qrCodeInstance.update({
-                    dotsOptions: { color: colorDots.value, type: styleDots.value },
-                    backgroundOptions: { color: colorBg.value },
-                    cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
-                    cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
-                });
-                generateOverlayImage(); // Panggil ini untuk memastikan logo/teks di-update juga
+                // All updates are now handled by updateQrData
+                updateQrData();
             };
 
             styleControls.forEach(control => control.addEventListener('input', updateAllStyles));
@@ -1677,12 +1661,12 @@
                     logoImage = new Image();
                     logoImage.crossOrigin = "anonymous"; 
                     logoImage.onload = () => {
-                        generateOverlayImage(); 
+                        updateQrData();
                     };
                     logoImage.onerror = () => {
                         console.error("Failed to load logo");
                         logoImage = null;
-                        generateOverlayImage();
+                        updateQrData();
                     };
                     logoImage.src = event.target.result; 
                 };
@@ -1691,7 +1675,7 @@
             logoRemove.addEventListener('click', () => {
                 logoImage = null;
                 logoUpload.value = '';
-                generateOverlayImage(); 
+                updateQrData();
             });
             
             // Listener Download
