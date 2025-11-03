@@ -1015,22 +1015,23 @@
                 // 5. Tutup Modal
                 historyModal.classList.add('hidden');
 
-                // 6. Load logo (jika ada) dan regenerasi gambar overlay
+                // 6. Load logo if it exists. The initial QR code is rendered by setActiveTab.
+                // This will re-render it with the logo once loaded.
                 if (savedLogoSrc) {
                     logoImage = new Image();
-                    logoImage.crossOrigin = "anonymous"; // Penting untuk canvas
+                    logoImage.crossOrigin = "anonymous";
                     logoImage.onload = () => {
-                        generateOverlayImage(); // Panggil setelah logo di-load
+                        updateQrData(); // Re-run the update with the loaded image.
                     };
                     logoImage.onerror = () => {
                         console.error("Failed to load saved logo");
                         logoImage = null;
-                        generateOverlayImage();
+                        updateQrData(); // Re-run the update to clear any broken image.
                     };
                     logoImage.src = savedLogoSrc;
                 } else {
                     logoImage = null;
-                    generateOverlayImage(); // Panggil meski tanpa logo (untuk teks)
+                    // No logo to load, the call from setActiveTab is enough.
                 }
 
                 console.log('QR Code loaded!');
@@ -1226,6 +1227,8 @@
                             ctx.drawImage(logoToDraw, logoX, logoY, logoW, logoH);
                         } catch (e) {
                             console.error("Error drawing logo:", e);
+                            reject(e); // Reject the promise if drawing fails
+                            return;
                         }
 
                         if (hasText) {
