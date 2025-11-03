@@ -753,7 +753,7 @@
             return url;
         }
 
-        function getCurrentConfig() {
+        async function getCurrentConfig() {
             // 1. Kumpulkan Data Input
             const vcardData = {};
             for (const key in vcardInputs) {
@@ -764,6 +764,17 @@
             vcardData.socials = {};
             for (const key in vcardInputs.socials) {
                 vcardData.socials[key] = vcardInputs.socials[key].value;
+            }
+
+            const compositeImage = await getCompositeImageDataUrl();
+
+            // Tambahan: Dapatkan data URL dari QR code SVG yang ditampilkan
+            const svgElement = qrCodePreview.querySelector('svg');
+            let fullQrImage = null;
+            if (svgElement) {
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svgElement);
+                fullQrImage = 'data:image/svg+xml;base64,' + btoa(svgString);
             }
 
             // 2. Kumpulkan Opsi Kustomisasi
@@ -783,8 +794,9 @@
                     type: styleCornerDot.value,
                     color: colorCornerDot.value
                 },
-                originalLogo: logoImage ? logoImage.src : null, // Logo asli untuk di-load
-                compositeImage: qrCodeInstance._options.image // Gambar komposit (logo+teks) untuk preview
+                originalLogo: logoImage ? logoImage.src : null,
+                compositeImage: compositeImage,
+                fullQrImage: fullQrImage // Simpan data URL QR code lengkap
             };
 
             // 3. Kembalikan Objek Konfigurasi Lengkap
@@ -809,12 +821,13 @@
             };
         }
 
-        function saveQRCode() {
+        async function saveQRCode() {
             let config;
             let name;
 
             try {
-                config = getCurrentConfig();
+                // [PERBAIKAN] Tunggu konfigurasi yang benar-benar selesai
+                config = await getCurrentConfig();
                 
                 // Coba dapatkan nama yang deskriptif
                 switch(activeTab) {
@@ -1031,9 +1044,13 @@
 
                 codes.forEach(code => {
                     let previewImg = '';
-                    const styles = code.styles || {}; 
+                    const styles = code.styles || {};
 
-                    if (styles.dotsOptions) {
+                    // Gunakan fullQrImage jika ada, jika tidak, fallback ke metode lama
+                    if (styles.fullQrImage) {
+                        previewImg = `<img src="${styles.fullQrImage}" alt="QR Code Preview" class="w-full h-full object-contain">`;
+                    } else if (styles.dotsOptions) {
+                        // Fallback untuk kode yang disimpan sebelum pembaruan
                         const miniQR = new QRCodeStyling({
                             width: 60,
                             height: 60,
@@ -1054,7 +1071,7 @@
                         miniQR.append(tempDiv);
                         previewImg = tempDiv.innerHTML; 
                     } else {
-                        // Fallback jika data styles rusak
+                        // Fallback jika data styles rusak total
                         previewImg = `<div class="w-[60px] h-[60px] flex items-center justify-center bg-gray-200 dark:bg-gray-600 rounded-md">
                             <i data-lucide="image-off" class="w-6 h-6 text-gray-400"></i>
                         </div>`;
@@ -1138,62 +1155,83 @@
             }
         }
 
-        function generateOverlayImage() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const size = 200; // Ukuran canvas virtual kita (persegi)
-            canvas.width = size;
-            canvas.height = size;
+        function getCompositeImageDataUrl() {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const size = 200;
+                canvas.width = size;
+                canvas.height = size;
 
-            const hasLogo = logoImage && logoImage.complete && logoImage.width > 0;
-            const hasText = customText.trim() !== '';
+                const hasText = customText.trim() !== '';
+                // Periksa apakah logo ada dan siap untuk digambar
+                const isLogoReady = logoImage && logoImage.complete && logoImage.naturalWidth > 0;
 
-            if (!hasLogo && !hasText) {
-                qrCodeInstance.update({ image: null });
-                return;
-            }
+                const drawCanvas = (logoToDraw) => {
+                    if (!logoToDraw && !hasText) {
+                        resolve(null);
+                        return;
+                    }
 
-            ctx.clearRect(0, 0, size, size);
-            ctx.font = 'bold 24px sans-serif'; 
-            ctx.fillStyle = customTextColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+                    ctx.clearRect(0, 0, size, size);
+                    ctx.font = 'bold 24px sans-serif';
+                    ctx.fillStyle = customTextColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
 
-            if (hasLogo) {
-                const logoRatio = logoImage.width / logoImage.height;
-                const maxSize = size * 0.5; 
-                
-                let logoW = maxSize;
-                let logoH = maxSize;
+                    if (logoToDraw) {
+                        const logoRatio = logoToDraw.width / logoToDraw.height;
+                        const maxSize = size * 0.5;
 
-                if (logoRatio > 1) { // Landscape
-                    logoH = maxSize / logoRatio;
-                } else { // Portrait or Square
-                    logoW = maxSize * logoRatio;
+                        let logoW = maxSize;
+                        let logoH = maxSize;
+
+                        if (logoRatio > 1) { // Landscape
+                            logoH = maxSize / logoRatio;
+                        } else { // Portrait or Square
+                            logoW = maxSize * logoRatio;
+                        }
+
+                        const logoX = (size - logoW) / 2;
+                        const logoY = size * 0.15;
+
+                        try {
+                            ctx.drawImage(logoToDraw, logoX, logoY, logoW, logoH);
+                        } catch (e) {
+                            console.error("Error drawing logo:", e);
+                        }
+
+                        if (hasText) {
+                            const textY = logoY + logoH + 20;
+                            ctx.fillText(customText, size / 2, textY, size * 0.9);
+                        }
+                    } else if (hasText) {
+                        ctx.fillText(customText, size / 2, size / 2, size * 0.9);
+                    }
+
+                    resolve(canvas.toDataURL('image/png'));
+                };
+
+                if (logoImage && !isLogoReady) {
+                    // Jika objek gambar ada tetapi belum dimuat, tunggu
+                    logoImage.onload = () => drawCanvas(logoImage);
+                    logoImage.onerror = () => {
+                        console.error("Logo failed to load for composite image.");
+                        drawCanvas(null); // Gambar tanpa logo
+                    };
+                } else {
+                    // Jika logo sudah siap atau tidak ada, gambar segera
+                    drawCanvas(isLogoReady ? logoImage : null);
                 }
-                
-                const logoX = (size - logoW) / 2;
-                const logoY = size * 0.15; 
+            });
+        }
 
-                try {
-                    ctx.drawImage(logoImage, logoX, logoY, logoW, logoH);
-                } catch (e) {
-                    console.error("Error drawing logo:", e);
-                }
-                
-                if (hasText) {
-                    const textY = logoY + logoH + 20; // 20px di bawah logo
-                    ctx.fillText(customText, size / 2, textY, size * 0.9); // Max width 90%
-                }
-            } else if (hasText) {
-                ctx.fillText(customText, size / 2, size / 2, size * 0.9); // Max width 90%
-            }
-
-            const dataUrl = canvas.toDataURL('image/png');
+        async function generateOverlayImage() {
+            const dataUrl = await getCompositeImageDataUrl();
             qrCodeInstance.update({ image: dataUrl });
         }
 
-        function updateQrData() {
+        async function updateQrData() {
             // 1. Tentukan Default Teks
             let defaultText = '';
             switch (activeTab) {
@@ -1221,8 +1259,8 @@
                 customText = defaultText;
             }
             
-            // 3. Generate gambar overlay 
-            generateOverlayImage();
+            // 3. Generate gambar overlay (sekarang async)
+            await generateOverlayImage();
 
             // 4. Tentukan Data untuk Di-encode
             let dataToEncode = 'https://github.com/gemini';
@@ -1715,7 +1753,7 @@
             });
             
             // --- Listener Modal Save ---
-            saveCodeBtn.addEventListener('click', saveQRCode); // Ini memicu modal
+            saveCodeBtn.addEventListener('click', () => saveQRCode()); // Ini memicu modal
             
             confirmSaveBtn.addEventListener('click', executeSave); // Ini menjalankan save
             
