@@ -768,10 +768,21 @@
 
             // 2. Kumpulkan Opsi Kustomisasi
             const currentStyles = {
-                dotsOptions: qrCodeInstance._options.dotsOptions,
-                backgroundOptions: qrCodeInstance._options.backgroundOptions,
-                cornersSquareOptions: qrCodeInstance._options.cornersSquareOptions,
-                cornersDotOptions: qrCodeInstance._options.cornersDotOptions, 
+                dotsOptions: {
+                    type: styleDots.value,
+                    color: colorDots.value
+                },
+                backgroundOptions: {
+                    color: colorBg.value
+                },
+                cornersSquareOptions: {
+                    type: styleCornerSquare.value,
+                    color: colorCornerSquare.value
+                },
+                cornersDotOptions: {
+                    type: styleCornerDot.value,
+                    color: colorCornerDot.value
+                },
                 originalLogo: logoImage ? logoImage.src : null, // Logo asli untuk di-load
                 compositeImage: qrCodeInstance._options.image // Gambar komposit (logo+teks) untuk preview
             };
