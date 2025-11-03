@@ -960,12 +960,15 @@
                 
                 const savedLogoSrc = savedStyles.originalLogo || null;
                 
-                // Hapus gambar dari objek styles sebelum di-apply
-                savedStyles.image = null; 
-                savedStyles.originalLogo = null;
-                savedStyles.compositeImage = null;
-                
-                qrCodeInstance.update(savedStyles);
+                // [FIX] Create a clean options object to avoid passing unknown properties
+                const updateOptions = {
+                    dotsOptions: savedStyles.dotsOptions,
+                    backgroundOptions: savedStyles.backgroundOptions,
+                    cornersSquareOptions: savedStyles.cornersSquareOptions,
+                    cornersDotOptions: savedStyles.cornersDotOptions,
+                    image: null // Start with no image; it will be loaded later
+                };
+                qrCodeInstance.update(updateOptions);
                 
                 // Update input kustomisasi (agar UI sinkron)
                 colorDots.value = savedStyles.dotsOptions.color || '#000000';
