@@ -699,8 +699,8 @@
 
         // --- Inisialisasi QR Code Instance ---
         const qrCodeInstance = new QRCodeStyling({
-            width: 280,
-            height: 280,
+            width: 260,
+            height: 260,
             type: 'svg',
             data: 'https://github.com/gemini',
             image: '',
@@ -1565,15 +1565,22 @@
             });
 
 
-            // Listener Kustomisasi
-            colorDots.addEventListener('input', (e) => qrCodeInstance.update({ dotsOptions: { color: e.target.value } }));
-            colorBg.addEventListener('input', (e) => qrCodeInstance.update({ backgroundOptions: { color: e.target.value } }));
-            colorCornerSquare.addEventListener('input', (e) => qrCodeInstance.update({ cornersSquareOptions: { color: e.target.value } }));
-            colorCornerDot.addEventListener('input', (e) => qrCodeInstance.update({ cornersDotOptions: { color: e.target.value } })); 
+            // [PERBAIKAN] Listener Kustomisasi Terpusat
+            const styleControls = [
+                colorDots, colorBg, colorCornerSquare, colorCornerDot,
+                styleDots, styleCornerSquare, styleCornerDot
+            ];
             
-            styleDots.addEventListener('change', (e) => qrCodeInstance.update({ dotsOptions: { type: e.target.value } }));
-            styleCornerSquare.addEventListener('change', (e) => qrCodeInstance.update({ cornersSquareOptions: { type: e.target.value } }));
-            styleCornerDot.addEventListener('change', (e) => qrCodeInstance.update({ cornersDotOptions: { type: e.target.value } })); 
+            const updateAllStyles = () => {
+                qrCodeInstance.update({
+                    dotsOptions: { color: colorDots.value, type: styleDots.value },
+                    backgroundOptions: { color: colorBg.value },
+                    cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
+                    cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
+                });
+            };
+
+            styleControls.forEach(control => control.addEventListener('input', updateAllStyles));
 
             // Listener Logo
             logoUpload.addEventListener('change', (e) => {
