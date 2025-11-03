@@ -746,6 +746,13 @@
         }
 
         // --- Fungsi IndexedDB ---
+        function formatUrl(url) {
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                return 'http://' + url;
+            }
+            return url;
+        }
+
         function getCurrentConfig() {
             // 1. Kumpulkan Data Input
             const vcardData = {};
@@ -1211,12 +1218,16 @@
             
             switch (activeTab) {
                 case 'single':
-                    dataToEncode = singleUrlInput.value || 'https://github.com/gemini';
+                    dataToEncode = formatUrl(singleUrlInput.value) || 'https://github.com/gemini';
                     break;
                 case 'multi':
+                    const formattedLinks = multiLinksData.map(link => ({
+                        ...link,
+                        url: formatUrl(link.url)
+                    }));
                     const pageData = {
                         title: multiTitleInput.value,
-                        links: multiLinksData
+                        links: formattedLinks
                     };
                     const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(pageData))));
                     const url = new URL(window.location.href);
