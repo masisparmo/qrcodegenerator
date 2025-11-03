@@ -699,8 +699,8 @@
 
         // --- Inisialisasi QR Code Instance ---
         const qrCodeInstance = new QRCodeStyling({
-            width: 260,
-            height: 260,
+            width: 240,
+            height: 240,
             type: 'svg',
             data: 'https://github.com/gemini',
             image: '',
@@ -1578,6 +1578,7 @@
                     cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
                     cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
                 });
+                generateOverlayImage(); // Panggil ini untuk memastikan logo/teks di-update juga
             };
 
             styleControls.forEach(control => control.addEventListener('input', updateAllStyles));
