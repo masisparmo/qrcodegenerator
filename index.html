@@ -1144,6 +1144,15 @@
 
 
         // --- Fungsi Utilitas ---
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
         function formatWaNumber(phone) {
             let num = phone.replace(/\D/g, ''); // Hapus semua non-digit
             if (num.startsWith('0')) {
@@ -1479,6 +1488,8 @@
 
         // --- Inisialisasi Generator ---
         function initGenerator() {
+            const debouncedUpdateQrData = debounce(updateQrData, 300);
+
             // Pasang QR code ke DOM
             qrCodeInstance.append(qrCodePreview);
             
@@ -1614,7 +1625,7 @@
                 
             // Listener untuk semua input data (kecuali yang dinamis)
             singleUrlInput.addEventListener('input', updateQrData);
-            multiTitleInput.addEventListener('input', updateQrData);
+            multiTitleInput.addEventListener('input', debouncedUpdateQrData);
             whatsappNumber.addEventListener('input', updateQrData);
             Object.values(vcardInputs).forEach(input => {
                 if (typeof input === 'object' && input.nodeName !== 'INPUT' && input.nodeName !== 'TEXTAREA') {
@@ -1719,7 +1730,7 @@
                     const index = e.target.dataset.index;
                     const field = e.target.dataset.field;
                     multiLinksData[index][field] = e.target.value;
-                    updateQrData();
+                    debouncedUpdateQrData();
                 }
             });
             multiLinksContainer.addEventListener('click', (e) => {
