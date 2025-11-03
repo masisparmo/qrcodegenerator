@@ -1496,7 +1496,7 @@
                         data.links.forEach(link => {
                             if (link.label && link.url) {
                                 const linkEl = document.createElement('a');
-                                linkEl.href = link.url;
+                                linkEl.href = formatUrl(link.url);
                                 linkEl.target = "_blank";
                                 linkEl.rel = "noopener noreferrer";
                                 linkEl.className = "block w-full text-center px-6 py-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 transform hover:scale-105";
