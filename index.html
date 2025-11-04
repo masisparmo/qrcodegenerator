@@ -1323,7 +1323,7 @@
             return getCompositeImageDataUrl();
         }
 
-        async function updateQrData() {
+        async function updateQrData(isRetry = false) {
             // 1. Tentukan Default Teks
             let defaultText = '';
             switch (activeTab) {
@@ -1667,7 +1667,10 @@
                 
                 // [PERBAIKAN BARU] Atur visibilitas wrapper logo
                 logoWrapper.style.display = (tabName === 'multi') ? 'none' : 'block';
-                landingLogoWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+                // Tampilkan tombol landing page HANYA jika elemennya masih ada di DOM
+                if (document.getElementById('landing-logo-wrapper')) {
+                    landingLogoWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+                }
 
                 // Perbarui data QR
                 updateQrData();
@@ -1823,19 +1826,27 @@
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const originalSrc = event.target.result;
-                    try {
-                        const finalSrc = await compressImage(originalSrc, 100, 0.7);
-                        landingPageLogoImage = new Image();
-                        landingPageLogoImage.crossOrigin = "anonymous";
-                        landingPageLogoImage.onload = () => updateQrData();
-                        landingPageLogoImage.onerror = () => { landingPageLogoImage.src = originalSrc; }; // Fallback
-                        landingPageLogoImage.src = finalSrc;
-                    } catch (error) {
+                    const finalSrc = await compressImage(originalSrc, 80, 0.5);
+
+                    // BATAS AMAN: sekitar 2.8KB. QR Code dengan error correction 'H'
+                    // mulai gagal sekitar 2953 byte.
+                    const SAFE_LIMIT = 2800;
+
+                    if (finalSrc.length > SAFE_LIMIT) {
+                        console.warn(`Logo data size (${finalSrc.length}) exceeds safe limit of ${SAFE_LIMIT}.`);
+                        alert("Logo image is too large and cannot be used. Please choose a smaller file.");
+
+                        landingPageLogoImage = null;
+                        landingLogoUpload.value = ''; // Reset input file
+                        landingLogoUploadLabel.textContent = translations[currentLang].styleLogoUpload;
+                        landingLogoWrapper.remove(); // Hapus tombol upload
+                        updateQrData(); // Render ulang QR tanpa logo
+                    } else {
                         landingPageLogoImage = new Image();
                         landingPageLogoImage.crossOrigin = "anonymous";
                         landingPageLogoImage.onload = () => updateQrData();
                         landingPageLogoImage.onerror = () => { landingPageLogoImage = null; updateQrData(); };
-                        landingPageLogoImage.src = originalSrc;
+                        landingPageLogoImage.src = finalSrc;
                     }
                 };
                 reader.readAsDataURL(file);
