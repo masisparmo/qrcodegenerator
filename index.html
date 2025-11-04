@@ -732,7 +732,7 @@
         const qrCodeInstance = new QRCodeStyling({
             width: 240,
             height: 240,
-            type: 'svg',
+            // type: 'svg', // [FIX] Remove type 'svg' to force canvas rendering
             data: 'https://github.com/gemini',
             image: '',
             dotsOptions: {
@@ -1840,6 +1840,10 @@
 
             // Ganti semua ikon
             lucide.createIcons();
+
+            // [FIX] Disable SVG download button as it's no longer supported
+            downloadSvgBtn.disabled = true;
+            downloadSvgBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
         function showPreview() {
