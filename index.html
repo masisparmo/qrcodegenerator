@@ -690,6 +690,7 @@
         const styleCornerSquare = document.getElementById('style-corner-square');
         const styleCornerDot = document.getElementById('style-corner-dot'); 
         const logoUpload = document.getElementById('logo-upload');
+        const logoUploadLabel = document.querySelector('label[for="logo-upload"]'); // [PERBAIKAN] Cache label
         const logoRemove = document.getElementById('logo-remove');
         const customTextInput = document.getElementById('custom-text');
         const customTextColorInput = document.getElementById('custom-text-color');
@@ -1457,6 +1458,44 @@
             lucide.createIcons();
         }
 
+        // [PERBAIKAN] Fungsi untuk kompresi gambar
+        function compressImage(src, maxSize, quality) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Hitung ulang dimensi gambar
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Gunakan JPEG untuk kompresi, fallback ke PNG jika tidak
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(dataUrl);
+                };
+                img.onerror = (err) => {
+                    console.error("Image compression failed:", err);
+                    reject(err); // Fallback ke gambar asli jika kompresi gagal
+                };
+                img.src = src;
+            });
+        }
+
         // --- Fungsi Bahasa & Tema ---
         window.setLanguage = (lang) => {
             if (!['en', 'id'].includes(lang)) lang = 'en';
@@ -1683,26 +1722,55 @@
             // Listener Logo
             logoUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file) return;
+                if (!file) {
+                    // Jika pengguna membatalkan pemilihan, jangan lakukan apa-apa
+                    return;
+                }
+
+                // [PERBAIKAN] Tampilkan nama file di label
+                logoUploadLabel.textContent = file.name;
+
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    logoImage = new Image();
-                    logoImage.crossOrigin = "anonymous"; 
-                    logoImage.onload = () => {
-                        updateQrData();
-                    };
-                    logoImage.onerror = () => {
-                        console.error("Failed to load logo");
-                        logoImage = null;
-                        updateQrData();
-                    };
-                    logoImage.src = event.target.result; 
+                reader.onload = async (event) => {
+                    const originalSrc = event.target.result;
+
+                    try {
+                        let finalSrc = originalSrc;
+                        // [PERBAIKAN] Kompresi gambar hanya untuk Multi URL
+                        if (activeTab === 'multi') {
+                            finalSrc = await compressImage(originalSrc, 100, 0.7);
+                        }
+
+                        logoImage = new Image();
+                        logoImage.crossOrigin = "anonymous";
+                        logoImage.onload = () => updateQrData();
+                        logoImage.onerror = () => {
+                            // Coba lagi dengan source asli jika source terkompresi gagal
+                            if (finalSrc !== originalSrc) {
+                                logoImage.src = originalSrc;
+                            } else {
+                                logoImage = null;
+                                updateQrData();
+                            }
+                        };
+                        logoImage.src = finalSrc;
+
+                    } catch (error) {
+                        // Fallback ke gambar asli jika ada error saat kompresi
+                        logoImage = new Image();
+                        logoImage.crossOrigin = "anonymous";
+                        logoImage.onload = () => updateQrData();
+                        logoImage.onerror = () => { logoImage = null; updateQrData(); };
+                        logoImage.src = originalSrc;
+                    }
                 };
                 reader.readAsDataURL(file);
             });
             logoRemove.addEventListener('click', () => {
                 logoImage = null;
-                logoUpload.value = '';
+                logoUpload.value = ''; // Reset input file-nya
+                // [PERBAIKAN] Reset teks label ke default sesuai bahasa
+                logoUploadLabel.textContent = translations[currentLang].styleLogoUpload;
                 updateQrData();
             });
             
