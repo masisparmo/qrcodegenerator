@@ -335,7 +335,7 @@
                     </div>
 
                     <!-- Teks Kustom -->
-                    <div>
+                    <div id="custom-text-wrapper">
                         <h3 class="text-md font-medium text-gray-700 dark:text-gray-300" data-lang="styleCustomText">Custom Text</h3>
                         <p class="text-xs text-gray-500 dark:text-gray-400 -mt-1 mb-2" data-lang="styleCustomTextHint">Appears below the logo (or in center).</p>
                         <div class="flex items-center gap-4">
@@ -694,6 +694,7 @@
         const logoRemove = document.getElementById('logo-remove');
         const customTextInput = document.getElementById('custom-text');
         const customTextColorInput = document.getElementById('custom-text-color');
+        const customTextWrapper = document.getElementById('custom-text-wrapper'); // [PERBAIKAN] Cache wrapper
         const textRemoveBtn = document.getElementById('text-remove');
 
         const downloadPngBtn = document.getElementById('download-png-btn');
@@ -1600,6 +1601,9 @@
 
                 // Tampilkan/sembunyikan wrapper share link
                 shareLinkWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+
+                // [PERBAIKAN] Sembunyikan Teks Kustom untuk Multi URL
+                customTextWrapper.style.display = (tabName === 'multi') ? 'none' : 'block';
                 
                 // Perbarui data QR
                 updateQrData();
