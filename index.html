@@ -1193,24 +1193,24 @@
         }
 
         function getCompositeImageDataUrl() {
-            return new Promise((resolve) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const size = 200;
-                canvas.width = size;
-                canvas.height = size;
-
+             return new Promise((resolve) => {
                 const hasText = customText.trim() !== '';
-                // Periksa apakah logo ada dan siap untuk digambar
                 const isLogoReady = logoImage && logoImage.complete && logoImage.naturalWidth > 0;
 
-                const drawCanvas = (logoToDraw) => {
+                // [FIX] Centralized logic to decide if there's anything to draw.
+                const drawContent = (logoToDraw) => {
+                    // If there's nothing to draw, resolve with null immediately.
                     if (!logoToDraw && !hasText) {
                         resolve(null);
                         return;
                     }
 
-                    ctx.clearRect(0, 0, size, size);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const size = 200;
+                    canvas.width = size;
+                    canvas.height = size;
+
                     ctx.font = 'bold 24px sans-serif';
                     ctx.fillStyle = customTextColor;
                     ctx.textAlign = 'center';
@@ -1219,16 +1219,9 @@
                     if (logoToDraw) {
                         const logoRatio = logoToDraw.width / logoToDraw.height;
                         const maxSize = size * 0.5;
-
-                        let logoW = maxSize;
-                        let logoH = maxSize;
-
-                        if (logoRatio > 1) { // Landscape
-                            logoH = maxSize / logoRatio;
-                        } else { // Portrait or Square
-                            logoW = maxSize * logoRatio;
-                        }
-
+                        let logoW = maxSize, logoH = maxSize;
+                        if (logoRatio > 1) { logoH = maxSize / logoRatio; }
+                        else { logoW = maxSize * logoRatio; }
                         const logoX = (size - logoW) / 2;
                         const logoY = size * 0.15;
 
@@ -1236,8 +1229,10 @@
                             ctx.drawImage(logoToDraw, logoX, logoY, logoW, logoH);
                         } catch (e) {
                             console.error("Error drawing logo:", e);
-                            reject(e); // Reject the promise if drawing fails
-                            return;
+                            if (!hasText) {
+                                resolve(null);
+                                return;
+                            }
                         }
 
                         if (hasText) {
@@ -1248,21 +1243,27 @@
                         ctx.fillText(customText, size / 2, size / 2, size * 0.9);
                     }
 
-                    resolve(canvas.toDataURL('image/png'));
+                    const dataUrl = canvas.toDataURL('image/png');
+                    // A blank 200x200 PNG data URL is ~187 bytes.
+                    if (dataUrl.length < 200) {
+                         resolve(null);
+                    } else {
+                         resolve(dataUrl);
+                    }
                 };
 
-                if (logoImage && !isLogoReady) {
-                    // Jika objek gambar ada tetapi belum dimuat, tunggu
-                    logoImage.onload = () => drawCanvas(logoImage);
+                if (isLogoReady) {
+                    drawContent(logoImage);
+                } else if (logoImage) { // Logo exists but is not ready
+                    logoImage.onload = () => drawContent(logoImage);
                     logoImage.onerror = () => {
-                        console.error("Logo failed to load for composite image.");
-                        drawCanvas(null); // Gambar tanpa logo
+                        console.error("Logo failed to load. Drawing without logo.");
+                        drawContent(null);
                     };
-                } else {
-                    // Jika logo sudah siap atau tidak ada, gambar segera
-                    drawCanvas(isLogoReady ? logoImage : null);
+                } else { // No logo
+                    drawContent(null);
                 }
-            });
+             });
         }
 
         async function generateOverlayImage() {
@@ -1271,6 +1272,7 @@
         }
 
         async function updateQrData() {
+            console.log("1. Starting updateQrData...");
             // 1. Tentukan Default Teks
             let defaultText = '';
             switch (activeTab) {
@@ -1364,19 +1366,26 @@
             }
 
             // 4. Dapatkan semua data dalam satu objek
+            console.log("3. Encoding complete. Data to encode:", dataToEncode);
             const compositeImageUrl = await generateOverlayImage();
+            console.log("4. Composite image URL:", compositeImageUrl);
 
             const options = {
                 data: dataToEncode,
-                image: compositeImageUrl,
                 dotsOptions: { color: colorDots.value, type: styleDots.value },
                 backgroundOptions: { color: colorBg.value },
                 cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
                 cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
             };
 
+            if (compositeImageUrl) {
+                options.image = compositeImageUrl;
+            }
+
             // 5. Panggil update() sekali dengan semua opsi
+            console.log("5. Updating QR code with options:", options);
             qrCodeInstance.update(options);
+            console.log("6. QR code update called.");
         }
 
         // Fungsi render dinamis (dibuat global di window agar setLanguage bisa memanggilnya)
