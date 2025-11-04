@@ -348,6 +348,42 @@
                         </div>
                     </div>
 
+                    <!-- Bingkai dengan CTA -->
+                    <div id="cta-frame-wrapper">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrame">CTA Frame</h3>
+                        <div class="flex items-center justify-between mt-2">
+                            <label for="cta-frame-toggle" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrameEnable">Enable Frame</label>
+                            <button role="switch" aria-checked="false" id="cta-frame-toggle" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 dark:bg-gray-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+                            </button>
+                        </div>
+
+                        <div id="cta-frame-options" class="hidden space-y-4 mt-4">
+                            <div>
+                                <label for="cta-frame-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrameText">Call to Action Text</label>
+                                <input type="text" id="cta-frame-text" placeholder="Scan Me!" class="mt-1 block w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrameIcon">Icon</label>
+                                <div id="cta-frame-icons" class="grid grid-cols-6 gap-2 mt-2">
+                                    <!-- Ikon akan ditambahkan di sini oleh JavaScript -->
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-x-6 gap-y-4">
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="cta-frame-color" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                                    <label for="cta-frame-color" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrameColor">Frame Color</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="cta-frame-textColor" value="#000000" class="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                                    <label for="cta-frame-textColor" class="text-sm font-medium text-gray-700 dark:text-gray-300" data-lang="styleCtaFrameTextColor">Text Color</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -536,6 +572,13 @@
                 styleCustomTextHint: "Appears below the logo (or in center).",
                 styleCustomTextPlaceholder: "Your Text...",
                 styleTextColor: "Text Color",
+                // CTA Frame
+                styleCtaFrame: "CTA Frame",
+                styleCtaFrameEnable: "Enable Frame",
+                styleCtaFrameText: "Call to Action Text",
+                styleCtaFrameIcon: "Icon",
+                styleCtaFrameColor: "Frame Color",
+                styleCtaFrameTextColor: "Text Color",
                 defaultTextWhatsapp: "WHATSAPP",
                 // IndexedDB & Share
                 myCodes: "My Codes",
@@ -617,6 +660,13 @@
                 styleCustomTextHint: "Tampil di bawah logo (atau di tengah).",
                 styleCustomTextPlaceholder: "Teks Anda...",
                 styleTextColor: "Warna Teks",
+                // CTA Frame
+                styleCtaFrame: "Bingkai CTA",
+                styleCtaFrameEnable: "Aktifkan Bingkai",
+                styleCtaFrameText: "Teks Ajakan Bertindak",
+                styleCtaFrameIcon: "Ikon",
+                styleCtaFrameColor: "Warna Bingkai",
+                styleCtaFrameTextColor: "Warna Teks",
                 defaultTextWhatsapp: "WHATSAPP",
                 // IndexedDB & Share
                 myCodes: "Kode Saya",
@@ -702,6 +752,14 @@
         const customTextWrapper = document.getElementById('custom-text-wrapper'); // [PERBAIKAN] Cache wrapper
         const textRemoveBtn = document.getElementById('text-remove');
 
+        // Elemen Bingkai CTA
+        const ctaFrameToggle = document.getElementById('cta-frame-toggle');
+        const ctaFrameOptions = document.getElementById('cta-frame-options');
+        const ctaFrameText = document.getElementById('cta-frame-text');
+        const ctaFrameIcons = document.getElementById('cta-frame-icons');
+        const ctaFrameColor = document.getElementById('cta-frame-color');
+        const ctaFrameTextColor = document.getElementById('cta-frame-textColor');
+
         const downloadPngBtn = document.getElementById('download-png-btn');
         const downloadSvgBtn = document.getElementById('download-svg-btn');
 
@@ -733,7 +791,16 @@
         let customTextColor = '#000000';
         let userHasEditedText = false; // Lacak editan manual
         let db = null; // Variabel untuk instance IndexedDB
-        let pendingSaveConfig = null; 
+        let pendingSaveConfig = null;
+
+        // State untuk Bingkai CTA
+        let ctaFrameState = {
+            enabled: false,
+            text: 'Scan Me!',
+            icon: 'globe',
+            frameColor: '#000000',
+            textColor: '#000000'
+        };
 
         // --- Inisialisasi QR Code Instance ---
         const qrCodeInstance = new QRCodeStyling({
@@ -1378,7 +1445,10 @@
                 dotsOptions: { color: colorDots.value, type: styleDots.value },
                 backgroundOptions: { color: colorBg.value },
                 cornersSquareOptions: { color: colorCornerSquare.value, type: styleCornerSquare.value },
-                cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
+                cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value },
+                imageOptions: {
+                    margin: ctaFrameState.enabled ? 0 : 5
+                }
             };
 
             // 5. Logika untuk menambahkan gambar overlay (HANYA jika bukan tab 'multi')
@@ -1397,6 +1467,23 @@
 
             // 6. Panggil update() sekali dengan semua opsi
             qrCodeInstance.update(options);
+
+            if (ctaFrameState.enabled) {
+                setTimeout(async () => {
+                    const finalImage = await getCtaFrameDataUrl();
+                    if (finalImage) {
+                        qrCodePreview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = finalImage;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        qrCodePreview.appendChild(img);
+                    }
+                }, 100); // Beri sedikit waktu agar SVG dirender
+            } else {
+                qrCodePreview.innerHTML = '';
+                qrCodeInstance.append(qrCodePreview);
+            }
         }
 
         // Fungsi render dinamis (dibuat global di window agar setLanguage bisa memanggilnya)
@@ -1727,7 +1814,19 @@
             // Listener Logo Landing Page (hanya untuk data, tanpa overlay)
             
             // Listener Download
-            downloadPngBtn.addEventListener('click', () => qrCodeInstance.download({ name: 'qr-code', extension: 'png' }));
+            downloadPngBtn.addEventListener('click', async () => {
+                if (ctaFrameState.enabled) {
+                    const dataUrl = await getCtaFrameDataUrl();
+                    if (dataUrl) {
+                        const link = document.createElement('a');
+                        link.download = 'qr-code-with-frame.png';
+                        link.href = dataUrl;
+                        link.click();
+                    }
+                } else {
+                    qrCodeInstance.download({ name: 'qr-code', extension: 'png' });
+                }
+            });
             downloadSvgBtn.addEventListener('click', () => qrCodeInstance.download({ name: 'qr-code', extension: 'svg' }));
 
             // Listener Copy Link
@@ -1863,6 +1962,33 @@
 
             // Ganti semua ikon
             lucide.createIcons();
+
+            // --- Listener Bingkai CTA ---
+            ctaFrameToggle.addEventListener('click', () => {
+                const enabled = ctaFrameToggle.getAttribute('aria-checked') === 'true';
+                ctaFrameState.enabled = !enabled;
+                ctaFrameToggle.setAttribute('aria-checked', ctaFrameState.enabled);
+                ctaFrameToggle.querySelector('span').classList.toggle('translate-x-5', ctaFrameState.enabled);
+                ctaFrameOptions.classList.toggle('hidden', !ctaFrameState.enabled);
+                updateQrData();
+            });
+
+            ctaFrameText.addEventListener('input', (e) => {
+                ctaFrameState.text = e.target.value;
+                debouncedUpdateQrData();
+            });
+
+            ctaFrameColor.addEventListener('input', (e) => {
+                ctaFrameState.frameColor = e.target.value;
+                updateQrData();
+            });
+
+            ctaFrameTextColor.addEventListener('input', (e) => {
+                ctaFrameState.textColor = e.target.value;
+                updateQrData();
+            });
+
+            renderCtaIcons(); // Render ikon saat inisialisasi
         }
 
         function showPreview() {
@@ -1894,6 +2020,90 @@
 
             previewContent.appendChild(pageWrapper);
             previewModal.classList.remove('hidden');
+        }
+
+        // --- Fungsi Bingkai CTA ---
+        const ctaIcons = {
+            'globe': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/></svg>',
+            'whatsapp': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 31.99a15.97 15.97 0 0 1-8.799-2.641l-6.148 1.964 1.993-5.94A15.87 15.87 0 0 1 0 16C0 7.182 7.173.01 15.99.01S31.98 7.182 31.98 16 24.81 31.99 15.99 31.99H16z" fill="#fefefe"/><path d="M11.535 8.132c-.3-.743-.545-.77-1.015-.8l-.536-.02c-.61 0-1.25.18-1.636.573-.47.48-1.636 1.598-1.636 3.892s1.673 4.512 1.9 4.823c.235.3 3.262 5.086 7.963 7.032 3.676 1.523 4.766 1.382 5.603 1.203 1.222-.263 2.754-1.166 3.14-2.256s.386-2.02.272-2.22-.423-.3-.893-.545-2.754-1.363-3.187-1.514c-.423-.16-.827-.103-1.147.348-.45.63-.893 1.27-1.25 1.654-.282.3-.743.34-1.128.18-.517-.216-1.965-.724-3.75-2.313-1.382-1.23-2.322-2.764-2.595-3.224-.273-.47-.028-.743.188-.997.235-.292.46-.498.696-.77s.367-.414.517-.733c.16-.3.047-.63-.066-.865s-1.053-2.53-1.438-3.46z" fill="currentColor"/></svg>',
+            'vcard': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 2v2M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M8 2v2"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="4" rx="2"/></svg>',
+            'list': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5H3m13 7H3m8 7H3m12-1l2 2l4-4"/></svg>',
+            'linkedin': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><g fill="none" fill-rule="evenodd"><path d="M8,72 L64,72 C68.418278,72 72,68.418278 72,64 L72,8 C72,3.581722 68.418278,-8.11624501e-16 64,0 L8,0 C3.581722,8.11624501e-16 -5.41083001e-16,3.581722 0,8 L0,64 C5.41083001e-16,68.418278 3.581722,72 8,72 Z" fill="#007EBB"/><path d="M62,62 L51.315625,62 L51.315625,43.8021149 C51.315625,38.8127542 49.4197917,36.0245323 45.4707031,36.0245323 C41.1746094,36.0245323 38.9300781,38.9261103 38.9300781,43.8021149 L38.9300781,62 L28.6333333,62 L28.6333333,27.3333333 L38.9300781,27.3333333 L38.9300781,32.0029283 C38.9300781,32.0029283 42.0260417,26.2742151 49.3825521,26.2742151 C56.7356771,26.2742151 62,30.7644705 62,40.051212 L62,62 Z M16.349349,22.7940133 C12.8420573,22.7940133 10,19.9296567 10,16.3970067 C10,12.8643566 12.8420573,10 16.349349,10 C19.8566406,10 22.6970052,12.8643566 22.6970052,16.3970067 C22.6970052,19.9296567 19.8566406,22.7940133 16.349349,22.7940133 Z M11.0325521,62 L21.769401,62 L21.769401,27.3333333 L11.0325521,27.3333333 L11.0325521,62 Z" fill="#FFF"/></g></svg>',
+            'mail': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>'
+        };
+
+        function renderCtaIcons() {
+            ctaFrameIcons.innerHTML = '';
+            for (const iconName in ctaIcons) {
+                const button = document.createElement('button');
+                button.dataset.icon = iconName;
+                button.className = `p-2 rounded-md border-2 transition-colors ${ctaFrameState.icon === iconName ? 'border-indigo-500' : 'border-gray-300 dark:border-gray-600'}`;
+                button.innerHTML = `<div class="w-5 h-5 text-gray-700 dark:text-gray-300">${ctaIcons[iconName]}</div>`;
+                button.addEventListener('click', () => {
+                    ctaFrameState.icon = iconName;
+                    renderCtaIcons();
+                    updateQrData();
+                });
+                ctaFrameIcons.appendChild(button);
+            }
+        }
+
+        async function getCtaFrameDataUrl() {
+            return new Promise((resolve) => {
+                const svgElement = qrCodePreview.querySelector('svg');
+                if (!svgElement) {
+                    resolve(null);
+                    return;
+                }
+
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svgElement);
+                const qrImage = new Image();
+
+                qrImage.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const framePadding = 40;
+                    const iconSize = 30;
+                    const textHeight = 30;
+                    const spacing = 10;
+
+                    const qrSize = qrImage.width;
+                    canvas.width = qrSize + framePadding * 2;
+                    canvas.height = qrSize + framePadding * 2 + iconSize + textHeight + spacing * 2;
+
+                    const ctx = canvas.getContext('2d');
+
+                    // 1. Gambar Bingkai
+                    ctx.fillStyle = ctaFrameState.frameColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // 2. Gambar Latar Belakang Putih untuk QR
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(framePadding, framePadding + iconSize + spacing, qrSize, qrSize);
+
+                    // 3. Gambar QR Code
+                    ctx.drawImage(qrImage, framePadding, framePadding + iconSize + spacing);
+
+                    // 4. Gambar Ikon
+                    const iconSvg = ctaIcons[ctaFrameState.icon];
+                    const iconImg = new Image();
+                    iconImg.onload = () => {
+                        ctx.drawImage(iconImg, (canvas.width - iconSize) / 2, framePadding, iconSize, iconSize);
+
+                        // 5. Gambar Teks
+                        ctx.fillStyle = ctaFrameState.textColor;
+                        ctx.font = 'bold 20px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText(ctaFrameState.text, canvas.width / 2, framePadding + iconSize + spacing + qrSize + spacing);
+
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                    iconImg.src = 'data:image/svg+xml;base64,' + btoa(iconSvg);
+                };
+
+                qrImage.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+            });
         }
 
         // --- Mulai Aplikasi ---
