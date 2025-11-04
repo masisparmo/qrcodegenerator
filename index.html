@@ -321,7 +321,7 @@
                     </div>
                     
                     <!-- Logo -->
-                    <div>
+                    <div id="logo-wrapper">
                         <h3 class="text-md font-medium text-gray-700 dark:text-gray-300" data-lang="styleLogo">Logo</h3>
                         <div class="flex items-center gap-4 mt-2">
                             <input type="file" id="logo-upload" class="hidden" accept="image/png, image/jpeg, image/svg+xml">
@@ -329,6 +329,20 @@
                                 Choose image...
                             </label>
                             <button id="logo-remove" class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Logo untuk Landing Page (Hanya Multi URL) -->
+                    <div id="landing-logo-wrapper" style="display: none;">
+                        <h3 class="text-md font-medium text-gray-700 dark:text-gray-300" data-lang="styleLandingPageLogo">Logo for Landing Page</h3>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input type="file" id="landing-logo-upload" class="hidden" accept="image/png, image/jpeg, image/svg+xml">
+                            <label for="landing-logo-upload" class="flex-1 cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 truncate" data-lang="styleLogoUpload">
+                                Choose image...
+                            </label>
+                            <button id="landing-logo-remove" class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500">
                                 <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
                         </div>
@@ -527,6 +541,7 @@
                 styleCornerSquareType: "Corner Square Style",
                 styleCornerDotType: "Corner Dot Style", 
                 styleLogo: "Logo",
+                styleLandingPageLogo: "Logo for Landing Page",
                 styleLogoUpload: "Choose image...",
                 col3Title: "3. Download QR Code",
                 // Teks Kustom
@@ -607,6 +622,7 @@
                 styleCornerSquareType: "Gaya Kotak Pojok",
                 styleCornerDotType: "Gaya Titik Pojok", 
                 styleLogo: "Logo",
+                styleLandingPageLogo: "Logo untuk Landing Page",
                 styleLogoUpload: "Pilih gambar...",
                 col3Title: "3. Unduh QR Code",
                 // Teks Kustom
@@ -692,6 +708,13 @@
         const logoUpload = document.getElementById('logo-upload');
         const logoUploadLabel = document.querySelector('label[for="logo-upload"]'); // [PERBAIKAN] Cache label
         const logoRemove = document.getElementById('logo-remove');
+        const logoWrapper = document.getElementById('logo-wrapper');
+
+        const landingLogoUpload = document.getElementById('landing-logo-upload');
+        const landingLogoUploadLabel = document.querySelector('label[for="landing-logo-upload"]');
+        const landingLogoRemove = document.getElementById('landing-logo-remove');
+        const landingLogoWrapper = document.getElementById('landing-logo-wrapper');
+
         const customTextInput = document.getElementById('custom-text');
         const customTextColorInput = document.getElementById('custom-text-color');
         const customTextWrapper = document.getElementById('custom-text-wrapper'); // [PERBAIKAN] Cache wrapper
@@ -723,7 +746,8 @@
         let multiLinksData = [];
         let vcardCustomFields = [];
         let vcardCustomSocials = [];
-        let logoImage = null; // Ini akan menyimpan objek new Image(), bukan Base64
+        let overlayLogoImage = null; // Untuk logo di tengah QR (semua tab kecuali multi)
+        let landingPageLogoImage = null; // Hanya untuk logo di landing page (tab multi)
         let customText = '';
         let customTextColor = '#000000';
         let userHasEditedText = false; // Lacak editan manual
@@ -736,7 +760,6 @@
             height: 240,
             type: 'svg',
             data: 'https://github.com/gemini',
-            image: '',
             dotsOptions: {
                 color: '#000000',
                 type: 'square'
@@ -830,7 +853,8 @@
                     type: styleCornerDot.value,
                     color: colorCornerDot.value
                 },
-                originalLogo: logoImage ? logoImage.src : null,
+                overlayLogo: overlayLogoImage ? overlayLogoImage.src : null,
+                landingPageLogo: landingPageLogoImage ? landingPageLogoImage.src : null,
                 compositeImage: compositeImage,
                 fullQrImage: fullQrImage // Simpan data URL QR code lengkap
             };
@@ -960,10 +984,12 @@
                     backgroundOptions: { color: '#ffffff' },
                     cornersSquareOptions: { color: '#000000', type: 'square' },
                     cornersDotOptions: { color: '#000000', type: 'square' }, 
-                    originalLogo: null
+                    overlayLogo: null,
+                    landingPageLogo: null
                 };
                 
-                const savedLogoSrc = savedStyles.originalLogo || null;
+                const savedOverlayLogoSrc = savedStyles.overlayLogo || null;
+                const savedLandingLogoSrc = savedStyles.landingPageLogo || null;
                 
                 // [FIX] Create a clean options object to avoid passing unknown properties
                 // This has been removed because updateQrData now handles all updates.
@@ -1020,23 +1046,44 @@
                 // 5. Tutup Modal
                 historyModal.classList.add('hidden');
 
-                // 6. Load logo if it exists. The initial QR code is rendered by setActiveTab.
-                // This will re-render it with the logo once loaded.
-                if (savedLogoSrc) {
-                    logoImage = new Image();
-                    logoImage.crossOrigin = "anonymous";
-                    logoImage.onload = () => {
-                        updateQrData(); // Re-run the update with the loaded image.
-                    };
-                    logoImage.onerror = () => {
-                        console.error("Failed to load saved logo");
-                        logoImage = null;
-                        updateQrData(); // Re-run the update to clear any broken image.
-                    };
-                    logoImage.src = savedLogoSrc;
+                // 6. Muat kedua logo jika ada.
+                overlayLogoImage = null;
+                landingPageLogoImage = null;
+
+                let updatesNeeded = 0;
+                if (savedOverlayLogoSrc) updatesNeeded++;
+                if (savedLandingLogoSrc) updatesNeeded++;
+
+                const onLogoLoaded = () => {
+                    updatesNeeded--;
+                    if (updatesNeeded === 0) {
+                        updateQrData(); // Panggil update hanya setelah semua logo dimuat
+                    }
+                };
+
+                if (updatesNeeded === 0) {
+                    updateQrData(); // Panggil langsung jika tidak ada logo untuk dimuat
                 } else {
-                    logoImage = null;
-                    // No logo to load, the call from setActiveTab is enough.
+                    if (savedOverlayLogoSrc) {
+                        overlayLogoImage = new Image();
+                        overlayLogoImage.crossOrigin = "anonymous";
+                        overlayLogoImage.onload = onLogoLoaded;
+                        overlayLogoImage.onerror = () => {
+                            console.error("Gagal memuat logo overlay");
+                            onLogoLoaded(); // Tetap panggil agar tidak macet
+                        };
+                        overlayLogoImage.src = savedOverlayLogoSrc;
+                    }
+                    if (savedLandingLogoSrc) {
+                        landingPageLogoImage = new Image();
+                        landingPageLogoImage.crossOrigin = "anonymous";
+                        landingPageLogoImage.onload = onLogoLoaded;
+                        landingPageLogoImage.onerror = () => {
+                            console.error("Gagal memuat logo landing page");
+                            onLogoLoaded(); // Tetap panggil agar tidak macet
+                        };
+                        landingPageLogoImage.src = savedLandingLogoSrc;
+                    }
                 }
 
                 console.log('QR Code loaded!');
@@ -1200,7 +1247,7 @@
         function getCompositeImageDataUrl() {
              return new Promise((resolve) => {
                 const hasText = customText.trim() !== '';
-                const isLogoReady = logoImage && logoImage.complete && logoImage.naturalWidth > 0;
+                const isLogoReady = overlayLogoImage && overlayLogoImage.complete && overlayLogoImage.naturalWidth > 0;
 
                 // [FIX] Centralized logic to decide if there's anything to draw.
                 const drawContent = (logoToDraw) => {
@@ -1258,10 +1305,10 @@
                 };
 
                 if (isLogoReady) {
-                    drawContent(logoImage);
-                } else if (logoImage) { // Logo exists but is not ready
-                    logoImage.onload = () => drawContent(logoImage);
-                    logoImage.onerror = () => {
+                    drawContent(overlayLogoImage);
+                } else if (overlayLogoImage) { // Logo exists but is not ready
+                    overlayLogoImage.onload = () => drawContent(overlayLogoImage);
+                    overlayLogoImage.onerror = () => {
                         console.error("Logo failed to load. Drawing without logo.");
                         drawContent(null);
                     };
@@ -1318,7 +1365,7 @@
                             a: link.label,        // label -> a
                             u: formatUrl(link.url)  // url -> u
                         })),
-                        g: logoImage ? logoImage.src : null // logo -> g
+                        g: landingPageLogoImage ? landingPageLogoImage.src : null // logo -> g
                     };
                     const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(minifiedPageData))));
                     const url = new URL(window.location.href);
@@ -1372,9 +1419,7 @@
                     break;
             }
 
-            // 4. Dapatkan semua data dalam satu objek
-            const compositeImageUrl = await generateOverlayImage();
-
+            // 4. Siapkan opsi dasar
             const options = {
                 data: dataToEncode,
                 dotsOptions: { color: colorDots.value, type: styleDots.value },
@@ -1383,12 +1428,21 @@
                 cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
             };
 
-            // [FIX] Conditionally add the image only if the tab is NOT multi
-            if (compositeImageUrl && activeTab !== 'multi') {
-                options.image = compositeImageUrl;
+            // 5. Logika untuk menambahkan gambar overlay (HANYA jika bukan tab 'multi')
+            if (activeTab !== 'multi') {
+                const hasText = customText.trim() !== '';
+                const hasReadyOverlayLogo = overlayLogoImage && overlayLogoImage.complete && overlayLogoImage.naturalWidth > 0;
+
+                if (hasText) {
+                    // Jika ada teks kustom (dengan atau tanpa logo), kita HARUS pakai canvas
+                    options.image = await getCompositeImageDataUrl();
+                } else if (hasReadyOverlayLogo) {
+                    // Jika HANYA ada logo (tanpa teks), biarkan library yg urus
+                    options.image = overlayLogoImage.src;
+                }
             }
 
-            // 5. Panggil update() sekali dengan semua opsi
+            // 6. Panggil update() sekali dengan semua opsi
             qrCodeInstance.update(options);
         }
 
@@ -1468,30 +1522,35 @@
                     let width = img.width;
                     let height = img.height;
 
-                    // Hitung ulang dimensi gambar
+                    if (width <= maxSize && height <= maxSize) {
+                        resolve(src); // Jangan kompres jika sudah cukup kecil
+                        return;
+                    }
+
                     if (width > height) {
-                        if (width > maxSize) {
-                            height *= maxSize / width;
-                            width = maxSize;
-                        }
+                        height *= maxSize / width;
+                        width = maxSize;
                     } else {
-                        if (height > maxSize) {
-                            width *= maxSize / height;
-                            height = maxSize;
-                        }
+                        width *= maxSize / height;
+                        height = maxSize;
                     }
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Gunakan JPEG untuk kompresi, fallback ke PNG jika tidak
                     const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    resolve(dataUrl);
+
+                    // Hanya gunakan gambar terkompresi jika lebih kecil dari aslinya
+                    if (dataUrl.length < src.length) {
+                        resolve(dataUrl);
+                    } else {
+                        resolve(src);
+                    }
                 };
                 img.onerror = (err) => {
-                    console.error("Image compression failed:", err);
-                    reject(err); // Fallback ke gambar asli jika kompresi gagal
+                    console.error("Image compression failed, using original:", err);
+                    resolve(src); // Fallback ke gambar asli jika ada error
                 };
                 img.src = src;
             });
@@ -1581,6 +1640,7 @@
 
             window.setActiveTab = (tabName) => {
                 activeTab = tabName;
+
                 tabs.forEach(tab => {
                     const isActive = tab.name === tabName;
                     tab.btn.classList.toggle('bg-indigo-600', isActive);
@@ -1605,6 +1665,10 @@
                 // [PERBAIKAN] Sembunyikan Teks Kustom untuk Multi URL
                 customTextWrapper.style.display = (tabName === 'multi') ? 'none' : 'block';
                 
+                // [PERBAIKAN BARU] Atur visibilitas wrapper logo
+                logoWrapper.style.display = (tabName === 'multi') ? 'none' : 'block';
+                landingLogoWrapper.style.display = (tabName === 'multi') ? 'block' : 'none';
+
                 // Perbarui data QR
                 updateQrData();
             }
@@ -1723,58 +1787,64 @@
 
             styleControls.forEach(control => control.addEventListener('input', updateAllStyles));
 
-            // Listener Logo
+            // Listener Logo Standar (untuk overlay)
             logoUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
-                if (!file) {
-                    // Jika pengguna membatalkan pemilihan, jangan lakukan apa-apa
-                    return;
-                }
+                if (!file) return;
 
-                // [PERBAIKAN] Tampilkan nama file di label
                 logoUploadLabel.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    overlayLogoImage = new Image();
+                    overlayLogoImage.crossOrigin = "anonymous";
+                    overlayLogoImage.onload = () => updateQrData();
+                    overlayLogoImage.onerror = () => {
+                        overlayLogoImage = null;
+                        updateQrData();
+                    };
+                    overlayLogoImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
 
+            logoRemove.addEventListener('click', () => {
+                overlayLogoImage = null;
+                logoUpload.value = '';
+                logoUploadLabel.textContent = translations[currentLang].styleLogoUpload;
+                updateQrData();
+            });
+
+            // Listener Logo Landing Page (hanya untuk data, tanpa overlay)
+            landingLogoUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                landingLogoUploadLabel.textContent = file.name;
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const originalSrc = event.target.result;
-
                     try {
-                        let finalSrc = originalSrc;
-                        // [PERBAIKAN] Kompresi gambar hanya untuk Multi URL
-                        if (activeTab === 'multi') {
-                            finalSrc = await compressImage(originalSrc, 100, 0.7);
-                        }
-
-                        logoImage = new Image();
-                        logoImage.crossOrigin = "anonymous";
-                        logoImage.onload = () => updateQrData();
-                        logoImage.onerror = () => {
-                            // Coba lagi dengan source asli jika source terkompresi gagal
-                            if (finalSrc !== originalSrc) {
-                                logoImage.src = originalSrc;
-                            } else {
-                                logoImage = null;
-                                updateQrData();
-                            }
-                        };
-                        logoImage.src = finalSrc;
-
+                        const finalSrc = await compressImage(originalSrc, 100, 0.7);
+                        landingPageLogoImage = new Image();
+                        landingPageLogoImage.crossOrigin = "anonymous";
+                        landingPageLogoImage.onload = () => updateQrData();
+                        landingPageLogoImage.onerror = () => { landingPageLogoImage.src = originalSrc; }; // Fallback
+                        landingPageLogoImage.src = finalSrc;
                     } catch (error) {
-                        // Fallback ke gambar asli jika ada error saat kompresi
-                        logoImage = new Image();
-                        logoImage.crossOrigin = "anonymous";
-                        logoImage.onload = () => updateQrData();
-                        logoImage.onerror = () => { logoImage = null; updateQrData(); };
-                        logoImage.src = originalSrc;
+                        landingPageLogoImage = new Image();
+                        landingPageLogoImage.crossOrigin = "anonymous";
+                        landingPageLogoImage.onload = () => updateQrData();
+                        landingPageLogoImage.onerror = () => { landingPageLogoImage = null; updateQrData(); };
+                        landingPageLogoImage.src = originalSrc;
                     }
                 };
                 reader.readAsDataURL(file);
             });
-            logoRemove.addEventListener('click', () => {
-                logoImage = null;
-                logoUpload.value = ''; // Reset input file-nya
-                // [PERBAIKAN] Reset teks label ke default sesuai bahasa
-                logoUploadLabel.textContent = translations[currentLang].styleLogoUpload;
+
+            landingLogoRemove.addEventListener('click', () => {
+                landingPageLogoImage = null;
+                landingLogoUpload.value = '';
+                landingLogoUploadLabel.textContent = translations[currentLang].styleLogoUpload;
                 updateQrData();
             });
             
@@ -1925,10 +1995,10 @@
             pageWrapper.className = 'w-full max-w-md mx-auto';
 
             let logoHTML = '';
-            if (logoImage && logoImage.src) {
+            if (landingPageLogoImage && landingPageLogoImage.src) {
                 logoHTML = `
                     <div class="mb-6 flex justify-center">
-                        <img src="${logoImage.src}" alt="Logo" class="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg">
+                        <img src="${landingPageLogoImage.src}" alt="Logo" class="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg">
                     </div>`;
             }
 
