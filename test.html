@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal QR Code Test</title>
+    <script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+</head>
+<body>
+    <h1>Minimal QR Code Test</h1>
+    <div id="qr-code"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const longData = 'http://example.com?data=' + 'a'.repeat(2000); // A very long string
+            const logoUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='; // 1x1 transparent png
+
+            const qrCode = new QRCodeStyling({
+                width: 300,
+                height: 300,
+                type: 'svg',
+                data: longData,
+                image: logoUrl,
+                dotsOptions: {
+                    color: "#000",
+                    type: "square"
+                },
+                backgroundOptions: {
+                    color: "#fff",
+                },
+                imageOptions: {
+                    crossOrigin: "anonymous",
+                    margin: 5
+                },
+                qrOptions: {
+                    errorCorrectionLevel: 'H'
+                }
+            });
+
+            qrCode.append(document.getElementById("qr-code"));
+        });
+    </script>
+</body>
+</html>
