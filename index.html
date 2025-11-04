@@ -1272,7 +1272,6 @@
         }
 
         async function updateQrData() {
-            console.log("1. Starting updateQrData...");
             // 1. Tentukan Default Teks
             let defaultText = '';
             switch (activeTab) {
@@ -1369,9 +1368,7 @@
             }
 
             // 4. Dapatkan semua data dalam satu objek
-            console.log("3. Encoding complete. Data to encode:", dataToEncode);
             const compositeImageUrl = await generateOverlayImage();
-            console.log("4. Composite image URL:", compositeImageUrl);
 
             const options = {
                 data: dataToEncode,
@@ -1381,14 +1378,13 @@
                 cornersDotOptions: { color: colorCornerDot.value, type: styleCornerDot.value }
             };
 
-            if (compositeImageUrl) {
+            // [FIX] Conditionally add the image only if the tab is NOT multi
+            if (compositeImageUrl && activeTab !== 'multi') {
                 options.image = compositeImageUrl;
             }
 
             // 5. Panggil update() sekali dengan semua opsi
-            console.log("5. Updating QR code with options:", options);
             qrCodeInstance.update(options);
-            console.log("6. QR code update called.");
         }
 
         // Fungsi render dinamis (dibuat global di window agar setLanguage bisa memanggilnya)
